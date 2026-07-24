@@ -3,11 +3,13 @@
 > AUTO-GENERATED from memory.db by `python TrueVow_Shared_Orchestration/memory.py export`.
 > Do NOT edit by hand - changes are overwritten. Source of truth: `TrueVow_Shared_Codebase_Memory/memory.db`.
 
-- Generated: 2026-07-23T18:40:34.794966+00:00
-- Total memories: 196
+- Generated: 2026-07-24T13:40:53.984443+00:00
+- Total memories: 199
 
-## High-importance decisions (8+, routine noise excluded) - 86
+## High-importance decisions (8+, routine noise excluded) - 87
 
+- **[10][architecture] SaaS Admin Sales Module — Full Gap Analysis vs Sales Ops** - Audit found ZERO integration between SaaS Admin and Sales Ops. SaaS Admin has its own Sales CRM Service (separate microservice for B2B SaaS sales pipeline) with 34 proxy routes. Key findings: (1) Sales homepage is a stub with MOCK_SALES_LEADS — no API calls. (2) Two no-op webhook handlers (tenant-status-changed, subscription-updated). (3) Broken provisioning/onboarding/qualification pages depending on missing /api/v1/tenants. (4) Two contact tables (core_contacts + customer_contacts) — no single source of truth. (5) No SALES_OPS_URL env var, no Sales Ops API client, no webhook receiver for application-approved events. (6) No 'convert to tenant' path from Sales Ops pipeline. (7) Archived sales tables from migration 079 may still exist as bloat. Full gap analysis written to docs/SALES_OPS_GAP_ANALYSIS.md with 5-phase action plan.
+  _by Admin - 2026-07-24 - tags: -_
 - **[10][architecture] SigNoz Deployed — Open-Source Observability Live** - SigNoz (open-source Datadog alternative) deployed as the TrueVow observability stack. Replaces the non-functional Sentry placeholder (# SENTRY_DSN=<add-your-dsn>). Stack: 5 Docker containers running (OTEL Collector on :4317/:4318, ClickHouse for traces/metrics, Query Service on :8080, Frontend UI on :3301, Jaeger fallback on :16686). All 11 services wired: setup.py --all copied otel_init.py / otel-node.js to each service, added OTEL_EXPORTER_OTLP_ENDPOINT to .env.local. Dashboard now shows OTEL wired: 11/11 and SigNoz: http://localhost:3301. Benefits: distributed tracing + metrics + error tracking all in one self-hosted platform, no API key needed.
   _by Admin - 2026-07-07 - tags: -_
 - **[10][architecture] All 5 CTO Dashboard Gaps Closed** - 1) Truth-loop now writes results to memory.db after every run — dashboard shows GREEN/FAIL per service. 2) Kanban tasks parsed from KANBAN-BOARD.md and mapped to services — dashboard shows active/blocked/pending counts. 3) Incidents parsed from vault Incidents/ — cross-service alerts filtered out, dashboard shows open incidents per service. 4) Observability stack check added to doctor — detects Docker Prometheus+Grafana+Jaeger status. 5) Per-service derived status (HEALTHY/ACTIVE/STALE/NEGLECTED/FAILING/BLOCKED/INCIDENT) combining all 4 data sources. All shown in unified CTO Dashboard (scan-services command).
@@ -181,8 +183,10 @@
 - **[8][todo] FIX gitignore source-leak: TrueVow-Tenant_Billing-Service** - ASSIGNED to the TrueVow-Tenant_Billing-Service agent. Real lib/ source is currently hidden from git (confirmed). Run the playbook: TrueVow_SaaS_Administration_Service/docs/01-main/ECOSYSTEM_ADVISORY_GITIGNORE_SOURCE_LEAK.md (fix .gitignore: anchor/remove stray lib/ + logs/; secrets-scan; commit recovered source in reviewed batches by explicit path; verify clean-clone build). REPORT RESULT via memory.py remember category=bug title='TrueVow-Tenant_Billing-Service gitignore RESULT' content='FIXED n files | CLEAN | BLOCKED + reason; secrets found?'. NOTE: reporting.py agent-checkin is broken — report via memory.
   _by user - 2026-06-25 - tags: gitignore, todo, assigned_
 
-## architecture (45)
+## architecture (46)
 
+- **[10] SaaS Admin Sales Module — Full Gap Analysis vs Sales Ops** - Audit found ZERO integration between SaaS Admin and Sales Ops. SaaS Admin has its own Sales CRM Service (separate microservice for B2B SaaS sales pipeline) with 34 proxy routes. Key findings: (1) Sales homepage is a stub with MOCK_SALES_LEADS — no API calls. (2) Two no-op webhook handlers (tenant-st...
+  _by Admin - 2026-07-24_
 - **[10] SigNoz Deployed — Open-Source Observability Live** - SigNoz (open-source Datadog alternative) deployed as the TrueVow observability stack. Replaces the non-functional Sentry placeholder (# SENTRY_DSN=<add-your-dsn>). Stack: 5 Docker containers running (OTEL Collector on :4317/:4318, ClickHouse for traces/metrics, Query Service on :8080, Frontend UI on...
   _by Admin - 2026-07-07_
 - **[10] All 5 CTO Dashboard Gaps Closed** - 1) Truth-loop now writes results to memory.db after every run — dashboard shows GREEN/FAIL per service. 2) Kanban tasks parsed from KANBAN-BOARD.md and mapped to services — dashboard shows active/blocked/pending counts. 3) Incidents parsed from vault Incidents/ — cross-service alerts filtered out, d...
@@ -370,10 +374,12 @@
 - **[1] FIXED: gitignore source-leak advisory** - RESOLVED July 1. All 6 affected services fixed.
   _by user - 2026-07-01_
 
-## context (98)
+## context (100)
 
 - **[8] Git Scan: 2026-07-21T17:26:34** - { "summary": { "timestamp": "2026-07-21T17:26:34.837888+00:00", "total": 14, "clean": 0, "dirty": 13, "missing": 1, "errors": 0, "stale_services": 14, "active_services": 0, "status_breakdown": { "HEALTHY": 0, "ACTIVE": 0, "STALE": 1, "NEGLECTED": 13, "BLOCKED": 0, "FAILING": 0, "INCIDENT": 0, "DIRTY...
   _by Admin - 2026-07-21_
+- **[7] [DONE] DONE: TRACE: comprehensive documentation update | outcome: 300+ line appendix added to TRACE-Agent-Coding-** - {"agent_id": "TrueVow_Tenant_TRACE_Service", "action": "done", "status": "DONE", "message": "TRACE: comprehensive documentation update | outcome: 300+ line appendix added to TRACE-Agent-Coding-Instructions.md covering system architecture, data flow, full API reference (28 endpoints), storage archite...
+  _by user - 2026-07-24_
 - **[7] [ACTIVE] START: Sales Ops: updated SANIA_DEVELOPER_GUIDE.md with full system overview (pipeline state, changes since** - {"agent_id": "TrueVow_Sales_Ops_Service", "action": "start", "status": "ACTIVE", "message": "Sales Ops: updated SANIA_DEVELOPER_GUIDE.md with full system overview (pipeline state, changes since June 5, active blockers) | goal: brief readable system doc for Sania", "timestamp": "2026-07-21T18:22:28.8...
   _by user - 2026-07-21_
 - **[7] [ACTIVE] START: PATCH: AGENTS.md — NEVER FABRICATE rule added (origin: LiveKit agent 429-to-billing-limit fabricatio** - {"agent_id": "TrueVow_Tenant_Application_Service", "action": "start", "status": "ACTIVE", "message": "PATCH: AGENTS.md \u2014 NEVER FABRICATE rule added (origin: LiveKit agent 429-to-billing-limit fabrication, 2026-07-19) | outcome: rule codified with verification protocol + user- correction procedu...
@@ -448,6 +454,8 @@
   _by user - 2026-06-25_
 - **[6] Documentation Status: TrueVow_Documentation is Stale** - TrueVow_Documentation/ contains older documentation (Word docs, markdown exports) including TrueVow_PRD.md, Complete System Technical Documentation, Financial Management guides, and Billing Service updates. These are outdated - they reflect the old architecture with DRAFT naming, CONNECT active, and...
   _by user - 2026-06-25_
+- **[5] Dispatch: Cross-service fix: Every service deployed on fly.io needs setInterval.unref() on** - Dispatched to skill='debugging-and-error-recovery' phase='verify' personas=[] tool=
+  _by Admin - 2026-07-23_
 - **[5] Sania Dev Guide Rewritten** - Replaced SANIA_DEVELOPER_GUIDE.md with comprehensive but scannable system overview: 8-phase pipeline table, 5 factories with detailed user journeys, inter-factory handoff diagram, current pipeline state per-state, changes since June 5, quick reference.
   _by Admin - 2026-07-21_
 - **[5] [ACTIVE] BLOCKED: SETTLE: bridging 12444 verified verdicts into estimator | attempted: built bridge_verdicts_to_estima** - {"agent_id": "TrueVow_Tenant_SETTLE-Service", "action": "blocked", "status": "ACTIVE", "message": "SETTLE: bridging 12444 verified verdicts into estimator | attempted: built bridge_verdicts_to_estimator.py (label-only enum mapping, exact_outcome_amount verbatim, evidence preserved, reversible) - dry...
