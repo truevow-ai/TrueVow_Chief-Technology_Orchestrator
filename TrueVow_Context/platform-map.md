@@ -24,9 +24,9 @@
 | First-Line Support | App2 | ghous-isb | 3007 | **ARCHIVED → Chatwoot** | historical only |
 | INTAKE (Tenant Application) | App3 | ghaus-fsd | 3022 | active | multi-bridge AI voice intake |
 | Customer Portal | App3 | yasha | 3031 | active | attorney dashboard (frontend-only) |
-| TRACE | App3 | yasha | — | **building** (1A–1D done, 1E ready) | medical-records chronology engine |
+| TRACE | App3 | yasha | 3036 | active | medical-records chronology engine + demand package |
 | SETTLE | App3 | yasha | 8002 | active | settlement range estimator |
-| LEVERAGE (ex-DRAFT) | App3 | yasha | 3036 | active | zero-knowledge compliance validation |
+| LEVERAGE (ex-DRAFT) | App3 | yasha | 3036 (shared, hidden in portal) | retired-ui | zero-knowledge compliance validation (sidebar hidden, TRACE now primary) |
 | VERIFY | App3 | yasha | — | **not git-init'd** (see note) | blockchain certificate verification |
 | Platform Analytics | — | yasha | 3071 | active | pipeline dashboards (SigNoz) |
 | TWIML SoftPhone | — | yasha | — | not a git repo | voice softphone app |

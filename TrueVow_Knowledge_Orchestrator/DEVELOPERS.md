@@ -22,8 +22,9 @@
 | First Line Support | — | Ghulam Ghous (ISB) | Yasha |
 | Sales Ops | 3056 | Ms. Sania | Yasha |
 | Customer Portal | 3031 | Yasha | — |
+| **TRACE** | **3036** | Yasha | — |
 | SETTLE | 8002 | Yasha | — |
-| LEVERAGE | 3036 | Yasha | — |
+| LEVERAGE | 3036 (shared port, hidden in portal) | Yasha | — |
 | VERIFY | — | Yasha | — |
 | CONNECT | — | Archived | — |
 | Platform Analytics | 3071 | Yasha | — |
