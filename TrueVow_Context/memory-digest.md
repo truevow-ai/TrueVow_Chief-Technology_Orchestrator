@@ -3,10 +3,10 @@
 > AUTO-GENERATED from memory.db by `python TrueVow_Shared_Orchestration/memory.py export`.
 > Do NOT edit by hand - changes are overwritten. Source of truth: `TrueVow_Shared_Codebase_Memory/memory.db`.
 
-- Generated: 2026-07-24T13:49:05.649166+00:00
-- Total memories: 203
+- Generated: 2026-07-27T15:22:09.649111+00:00
+- Total memories: 209
 
-## High-importance decisions (8+, routine noise excluded) - 91
+## High-importance decisions (8+, routine noise excluded) - 93
 
 - **[10][architecture] TRACE full system architecture documented** - TRACE service (port 3036) runs as second pipeline stage (INTAKE -> TRACE -> SETTLE). Backend: Python FastAPI with JWT auth, Supabase Postgres+Storage, DeepSeek LLM. Portal: Next.js 14 at port 3031 with 6 TRACE pages, universal proxy route generating HS256 JWT. 28 API endpoints covering cases, providers, fax, documents, chronology, liens, export, webhooks. Inbound email via Resend webhook, inbound fax via Documo callback. 60/60 tests passing. Documentation at docs/00-Planning/TRACE-Agent-Coding-Instructions.md Appendix A.
   _by Admin - 2026-07-24 - tags: -_
@@ -50,6 +50,8 @@
   _by Admin - 2026-07-07 - tags: -_
 - **[10][bug] Gitignore Source-Leak FIXED — All 6 services** - All 6 affected services now have anchored .gitignore patterns. lib/, env/, venv/, build/, dist/ now use leading / to prevent accidental source file hiding. Leaked PowerShell commands removed from FM, Billing, and LEVERAGE. SETTLE test_db_conn.py and recover_pyc.py anchored to root only. Internal Ops, SETTLE, and LEVERAGE latent rules also fixed.
   _by Admin - 2026-07-01 - tags: -_
+- **[10][context] TRACE documentation and memory updated July 24 2026** - All documentation updated: AGENTS.md (250+ lines with full service reference), README.md (updated stack/status), TRACE-Agent-Coding-Instructions.md (300+ line Appendix A with architecture, API reference, data flow, troubleshooting). Platform map updated (TRACE: port 3036, active). DEVELOPERS.md updated (TRACE added as separate service). 4 memory entries logged (architecture, portal decisions, inbound pattern, bug fixes). 3 repos pushed: TRACE service (17 files, +964 lines), Customer Portal (25 files, +1902 lines), Context/Orchestrator (2 files). 60/60 tests passing. 2 schema migrations pending on Supabase. Remaining items: configure webhook secrets, DocuSeal subscription, billing service trace feature.
+  _by Admin - 2026-07-24 - tags: -_
 - **[10][convention] zero hardcoded tunable values** - RULE: This is a multi-tenant platform. Never hardcode ANY value that may need adjustment per-tenant, per-firm, or per-environment. All tunables must live in one of: (1) tenant_config, (2) workflow JSON config, or (3) named module-level constants with clear documentation. Bare numbers, strings, or IDs in logic statements are FORBIDDEN. If you need a value that could change — threshold, timeout, limit, firm identifier, VAD setting, confidence score — expose it via config. Test by asking: 'Could a different law firm need this set differently?'
   _by Admin - 2026-07-15 - tags: -_
 - **[10][decision] xai intake: filler+verbatim+routing all FIXED (test-1784019219932)** - Test test-1784019219932 confirmed 3 MAJOR fixes working: (1) FILLER GONE — clean 'silent function-calling component' console prompt (NO Benjamin persona, NO 'tool is the voice', guardrail block DELETED) + reasoning.effort:none + minimal function_call_output (status only, NOT the wording) = ENGINE text spoken BYTE-FOR-BYTE verbatim every turn, zero 'I'll get the next question'. (2) PROPERTY-DAMAGE MISROUTE fixed — _check_context_reroute in workflow_engine.py L2333 now scoped to EARLY_REROUTE_NODES (identify_practice_area + *_jurisdiction only), so 'no injuries' mid-intake no longer rejects valid slip-fall caller. (3) MIC-GATE tied to playback state not fragile timer. REMAINING: (A) empty user_text idle re-fires re-spoke same line 2-3x — JUST FIXED with empty-input no-op guard (silent function_call_output, no force_message, when user_text empty after turn 1). (B) workflow CONTENT coherence — Oakwood config misread 'about to happen/future hazard' as workplace-injury path asking about existing injuries; that's a config-design issue separate from bridge. Console prompt (final): 'You are a silent function-calling component... only call get_next_intake_question... never produce user-visible language.' Legal disclaimers/transfer/AI-disclosure must move INTO WorkflowEngine force_message lines (better for legal audit). NOT committed yet.
@@ -150,6 +152,8 @@
   _by user - 2026-06-25 - tags: analytics, events, warehouse, dashboards, star-schema, platform_
 - **[8][architecture] Tenant Application Service (INTAKE) - Voice + NLP Pipeline** - Phase I intake services. Stack: Python/FastAPI backend, FSM-based deterministic NLP engine, voice pipeline. Purpose: Legal AI intake for personal injury attorneys - captures client information via voice/NLP. Separated from website code (Nov 2025). Technology: Finite State Machine, deterministic NLP (not LLM-based for compliance). Voice pipeline components integrated. Ports: API backend. Depends on: SaaS Admin (tenant management, auth). Related: Benjamin voice agent (STT/TTS), Dialogflow Intake (alternative intake path).
   _by user - 2026-06-25 - tags: intake, nlp, fsm, voice, fastapi, python, tenant-application_
+- **[8][bug] any | None type annotation blocks Python 3.13** - database.py used lowercase 'any' instead of 'Any' from typing. Python 3.13 correctly rejects this since 'any' is a builtin function, not a type. Fixed by importing Any and correcting annotations.
+  _by Admin - 2026-07-26 - tags: -_
 - **[8][bug] naic_complaints queried wrong Socrata dataset** - scripts/scraping-factory/insurance-carrier/naic_complaints.py filtered by 'naic' column on the raw records dataset jjc8-mxkg which has NO carrier column (HTTP 400). Fixed to use complaint-index dataset pa9u-9s9w with naic_id/year/col1-3. Verified real data.
   _by Admin - 2026-07-08 - tags: -_
 - **[8][bug] Carrier extractor captured sentence fragments** - settle_data_scraping_factory/_common/enrich.py _INSURANCE_RE used greedy IGNORECASE [A-Z] and captured whole sentences as insurance_carrier. 86% (3547/4104) of carrier values were garbage. Fixed with known-carrier registry + strict proper-noun+suffix pattern + is_valid_carrier/clean_carrier validators. clean_carriers.py scrubs existing files.
@@ -355,7 +359,7 @@
 - **[10] zero hardcoded tunable values** - RULE: This is a multi-tenant platform. Never hardcode ANY value that may need adjustment per-tenant, per-firm, or per-environment. All tunables must live in one of: (1) tenant_config, (2) workflow JSON config, or (3) named module-level constants with clear documentation. Bare numbers, strings, or ID...
   _by Admin - 2026-07-15_
 
-## bug (16)
+## bug (17)
 
 - **[10] TRACE 9 bugs fixed Jul 24 2026** - 1) extraction_confidence VARCHAR(10->32) overflow on DO_NOT_REQUEST value. 2) audit_log.action VARCHAR(100->255) overflow on long paths. 3) get_case no firm_id filter (SECURITY: firm isolation gap). 4) ChronologyExporter export_json/export_pdf called with wrong params in qa.py. 5) LOCAL_JWT_SECRET n...
   _by Admin - 2026-07-24_
@@ -371,6 +375,8 @@
   _by Admin - 2026-07-01_
 - **[9] contact_info_sequence dropped phone+email** - Root cause: routing INTO a sequence node used _execute_node, which returned the sequence's own intro prompt and left current_node=contact_info_sequence WITHOUT priming the first sub-node. Next turn the C10 terminal guard (workflow_engine.py:518) saw no next/branches/options and returned _build_compl...
   _by Admin - 2026-07-14_
+- **[8] any | None type annotation blocks Python 3.13** - database.py used lowercase 'any' instead of 'Any' from typing. Python 3.13 correctly rejects this since 'any' is a builtin function, not a type. Fixed by importing Any and correcting annotations.
+  _by Admin - 2026-07-26_
 - **[8] naic_complaints queried wrong Socrata dataset** - scripts/scraping-factory/insurance-carrier/naic_complaints.py filtered by 'naic' column on the raw records dataset jjc8-mxkg which has NO carrier column (HTTP 400). Fixed to use complaint-index dataset pa9u-9s9w with naic_id/year/col1-3. Verified real data.
   _by Admin - 2026-07-08_
 - **[8] Carrier extractor captured sentence fragments** - settle_data_scraping_factory/_common/enrich.py _INSURANCE_RE used greedy IGNORECASE [A-Z] and captured whole sentences as insurance_carrier. 86% (3547/4104) of carrier values were garbage. Fixed with known-carrier registry + strict proper-noun+suffix pattern + is_valid_carrier/clean_carrier validato...
@@ -390,10 +396,20 @@
 - **[1] FIXED: gitignore source-leak advisory** - RESOLVED July 1. All 6 affected services fixed.
   _by user - 2026-07-01_
 
-## context (100)
+## context (105)
 
+- **[10] TRACE documentation and memory updated July 24 2026** - All documentation updated: AGENTS.md (250+ lines with full service reference), README.md (updated stack/status), TRACE-Agent-Coding-Instructions.md (300+ line Appendix A with architecture, API reference, data flow, troubleshooting). Platform map updated (TRACE: port 3036, active). DEVELOPERS.md upda...
+  _by Admin - 2026-07-24_
 - **[8] Git Scan: 2026-07-21T17:26:34** - { "summary": { "timestamp": "2026-07-21T17:26:34.837888+00:00", "total": 14, "clean": 0, "dirty": 13, "missing": 1, "errors": 0, "stale_services": 14, "active_services": 0, "status_breakdown": { "HEALTHY": 0, "ACTIVE": 0, "STALE": 1, "NEGLECTED": 13, "BLOCKED": 0, "FAILING": 0, "INCIDENT": 0, "DIRTY...
   _by Admin - 2026-07-21_
+- **[7] [DONE] DONE: Billing: fixed test suite — all 111 tests pass (was 55 failing) | outcome: 111 passed, 0 failed, 1 s** - {"agent_id": "TrueVow-Tenant_Billing-Service", "action": "done", "status": "DONE", "message": "Billing: fixed test suite \u2014 all 111 tests pass (was 55 failing) | outcome: 111 passed, 0 failed, 1 skipped, 1 warning | learned: 'any' is a builtin function in Python 3.13, use 'Any' from typing for t...
+  _by user - 2026-07-26_
+- **[7] [ACTIVE] START: Billing: resuming test fixes from CHECKPOINT_PROGRESS.md | 55 failing tests across 4 categories | go** - {"agent_id": "TrueVow-Tenant_Billing-Service", "action": "start", "status": "ACTIVE", "message": "Billing: resuming test fixes from CHECKPOINT_PROGRESS.md | 55 failing tests across 4 categories | goal: get tests to 0 failures", "timestamp": "2026-07-26T23:06:00.009271+00:00", "working_dir": "C:\\Use...
+  _by user - 2026-07-26_
+- **[7] [ACTIVE] START: INTAKE: resuming from previous session (2026-07-18 Design Doc + LiveKit Addenda 1-16) | goal: contin** - {"agent_id": "TrueVow_Tenant_Application_Service", "action": "start", "status": "ACTIVE", "message": "INTAKE: resuming from previous session (2026-07-18 Design Doc + LiveKit Addenda 1-16) | goal: continue with uncommitted work and pending tasks", "timestamp": "2026-07-26T23:01:46.501306+00:00", "wor...
+  _by user - 2026-07-26_
+- **[7] [ACTIVE] START: CSM: resuming previous session | checking current state | goal: continue where we left off** - {"agent_id": "TrueVow_Customer_Success_CORE_Service", "action": "start", "status": "ACTIVE", "message": "CSM: resuming previous session | checking current state | goal: continue where we left off", "timestamp": "2026-07-26T22:59:54.608986+00:00", "working_dir": "C:\\Users\\yasha\\OneDrive\\Documents...
+  _by user - 2026-07-26_
 - **[7] [DONE] DONE: TRACE: comprehensive documentation update | outcome: 300+ line appendix added to TRACE-Agent-Coding-** - {"agent_id": "TrueVow_Tenant_TRACE_Service", "action": "done", "status": "DONE", "message": "TRACE: comprehensive documentation update | outcome: 300+ line appendix added to TRACE-Agent-Coding-Instructions.md covering system architecture, data flow, full API reference (28 endpoints), storage archite...
   _by user - 2026-07-24_
 - **[7] [ACTIVE] START: Sales Ops: updated SANIA_DEVELOPER_GUIDE.md with full system overview (pipeline state, changes since** - {"agent_id": "TrueVow_Sales_Ops_Service", "action": "start", "status": "ACTIVE", "message": "Sales Ops: updated SANIA_DEVELOPER_GUIDE.md with full system overview (pipeline state, changes since June 5, active blockers) | goal: brief readable system doc for Sania", "timestamp": "2026-07-21T18:22:28.8...
