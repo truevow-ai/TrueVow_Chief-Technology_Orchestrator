@@ -3,10 +3,10 @@
 > AUTO-GENERATED from memory.db by `python TrueVow_Shared_Orchestration/memory.py export`.
 > Do NOT edit by hand - changes are overwritten. Source of truth: `TrueVow_Shared_Codebase_Memory/memory.db`.
 
-- Generated: 2026-07-27T15:25:36.467144+00:00
-- Total memories: 212
+- Generated: 2026-07-27T15:27:47.246722+00:00
+- Total memories: 214
 
-## High-importance decisions (8+, routine noise excluded) - 93
+## High-importance decisions (8+, routine noise excluded) - 94
 
 - **[10][architecture] TRACE full system architecture documented** - TRACE service (port 3036) runs as second pipeline stage (INTAKE -> TRACE -> SETTLE). Backend: Python FastAPI with JWT auth, Supabase Postgres+Storage, DeepSeek LLM. Portal: Next.js 14 at port 3031 with 6 TRACE pages, universal proxy route generating HS256 JWT. 28 API endpoints covering cases, providers, fax, documents, chronology, liens, export, webhooks. Inbound email via Resend webhook, inbound fax via Documo callback. 60/60 tests passing. Documentation at docs/00-Planning/TRACE-Agent-Coding-Instructions.md Appendix A.
   _by Admin - 2026-07-24 - tags: -_
@@ -50,6 +50,8 @@
   _by Admin - 2026-07-07 - tags: -_
 - **[10][bug] Gitignore Source-Leak FIXED — All 6 services** - All 6 affected services now have anchored .gitignore patterns. lib/, env/, venv/, build/, dist/ now use leading / to prevent accidental source file hiding. Leaked PowerShell commands removed from FM, Billing, and LEVERAGE. SETTLE test_db_conn.py and recover_pyc.py anchored to root only. Internal Ops, SETTLE, and LEVERAGE latent rules also fixed.
   _by Admin - 2026-07-01 - tags: -_
+- **[10][context] SETTLE active session for resumption** - session_id=999bfecf-f156-478e-a3e5-2bab70304217 | task: Resuming nationwide scraping expansion | user will return to continue this exact session
+  _by Admin - 2026-07-27 - tags: -_
 - **[10][context] TRACE documentation and memory updated July 24 2026** - All documentation updated: AGENTS.md (250+ lines with full service reference), README.md (updated stack/status), TRACE-Agent-Coding-Instructions.md (300+ line Appendix A with architecture, API reference, data flow, troubleshooting). Platform map updated (TRACE: port 3036, active). DEVELOPERS.md updated (TRACE added as separate service). 4 memory entries logged (architecture, portal decisions, inbound pattern, bug fixes). 3 repos pushed: TRACE service (17 files, +964 lines), Customer Portal (25 files, +1902 lines), Context/Orchestrator (2 files). 60/60 tests passing. 2 schema migrations pending on Supabase. Remaining items: configure webhook secrets, DocuSeal subscription, billing service trace feature.
   _by Admin - 2026-07-24 - tags: -_
 - **[10][convention] zero hardcoded tunable values** - RULE: This is a multi-tenant platform. Never hardcode ANY value that may need adjustment per-tenant, per-firm, or per-environment. All tunables must live in one of: (1) tenant_config, (2) workflow JSON config, or (3) named module-level constants with clear documentation. Bare numbers, strings, or IDs in logic statements are FORBIDDEN. If you need a value that could change — threshold, timeout, limit, firm identifier, VAD setting, confidence score — expose it via config. Test by asking: 'Could a different law firm need this set differently?'
@@ -396,14 +398,18 @@
 - **[1] FIXED: gitignore source-leak advisory** - RESOLVED July 1. All 6 affected services fixed.
   _by user - 2026-07-01_
 
-## context (108)
+## context (110)
 
+- **[10] SETTLE active session for resumption** - session_id=999bfecf-f156-478e-a3e5-2bab70304217 | task: Resuming nationwide scraping expansion | user will return to continue this exact session
+  _by Admin - 2026-07-27_
 - **[10] TRACE documentation and memory updated July 24 2026** - All documentation updated: AGENTS.md (250+ lines with full service reference), README.md (updated stack/status), TRACE-Agent-Coding-Instructions.md (300+ line Appendix A with architecture, API reference, data flow, troubleshooting). Platform map updated (TRACE: port 3036, active). DEVELOPERS.md upda...
   _by Admin - 2026-07-24_
 - **[8] Git Scan: 2026-07-27T15:23:35** - { "summary": { "timestamp": "2026-07-27T15:23:35.204323+00:00", "total": 14, "clean": 0, "dirty": 13, "missing": 1, "errors": 0, "stale_services": 10, "active_services": 4, "status_breakdown": { "HEALTHY": 0, "ACTIVE": 3, "STALE": 1, "NEGLECTED": 9, "BLOCKED": 0, "FAILING": 0, "INCIDENT": 0, "DIRTY"...
   _by Admin - 2026-07-27_
 - **[8] Git Scan: 2026-07-21T17:26:34** - { "summary": { "timestamp": "2026-07-21T17:26:34.837888+00:00", "total": 14, "clean": 0, "dirty": 13, "missing": 1, "errors": 0, "stale_services": 14, "active_services": 0, "status_breakdown": { "HEALTHY": 0, "ACTIVE": 0, "STALE": 1, "NEGLECTED": 13, "BLOCKED": 0, "FAILING": 0, "INCIDENT": 0, "DIRTY...
   _by Admin - 2026-07-21_
+- **[7] [PAUSED] DONE: SETTLE: pausing session 999bfecf | task: nationwide scraping expansion | user will resume from this** - {"agent_id": "TrueVow_Tenant_SETTLE-Service", "action": "done", "status": "PAUSED", "message": "SETTLE: pausing session 999bfecf | task: nationwide scraping expansion | user will resume from this exact session", "timestamp": "2026-07-27T15:27:46.460548+00:00", "working_dir": "C:\\Users\\yasha\\OneDr...
+  _by user - 2026-07-27_
 - **[7] [PAUSED] DONE: INTAKE: pausing session (user closing window) | status: uncommitted changes on main, engine data-qua** - {"agent_id": "TrueVow_Tenant_Application_Service", "action": "done", "status": "PAUSED", "message": "INTAKE: pausing session (user closing window) | status: uncommitted changes on main, engine data-quality issues pending, LiveKit/Cartesia deploys pending | next: resume same session", "timestamp": "2...
   _by user - 2026-07-27_
 - **[7] [ACTIVE] START: SETTLE: finding last session id --help** - {"agent_id": "TrueVow_Tenant_SETTLE-Service", "action": "start", "status": "ACTIVE", "message": "SETTLE: finding last session id --help", "timestamp": "2026-07-27T15:23:35.748625+00:00", "working_dir": "C:\\Users\\yasha\\OneDrive\\Documents\\TrueVow\\Cursor\\TrueVow_Tenant_SETTLE-Service"}
