@@ -3,8 +3,8 @@
 > AUTO-GENERATED from memory.db by `python TrueVow_Shared_Orchestration/memory.py export`.
 > Do NOT edit by hand - changes are overwritten. Source of truth: `TrueVow_Shared_Codebase_Memory/memory.db`.
 
-- Generated: 2026-07-27T15:27:47.246722+00:00
-- Total memories: 214
+- Generated: 2026-07-27T17:54:56.641845+00:00
+- Total memories: 216
 
 ## High-importance decisions (8+, routine noise excluded) - 94
 
@@ -398,7 +398,7 @@
 - **[1] FIXED: gitignore source-leak advisory** - RESOLVED July 1. All 6 affected services fixed.
   _by user - 2026-07-01_
 
-## context (110)
+## context (112)
 
 - **[10] SETTLE active session for resumption** - session_id=999bfecf-f156-478e-a3e5-2bab70304217 | task: Resuming nationwide scraping expansion | user will return to continue this exact session
   _by Admin - 2026-07-27_
@@ -408,6 +408,10 @@
   _by Admin - 2026-07-27_
 - **[8] Git Scan: 2026-07-21T17:26:34** - { "summary": { "timestamp": "2026-07-21T17:26:34.837888+00:00", "total": 14, "clean": 0, "dirty": 13, "missing": 1, "errors": 0, "stale_services": 14, "active_services": 0, "status_breakdown": { "HEALTHY": 0, "ACTIVE": 0, "STALE": 1, "NEGLECTED": 13, "BLOCKED": 0, "FAILING": 0, "INCIDENT": 0, "DIRTY...
   _by Admin - 2026-07-21_
+- **[7] [DONE] DONE: Sales Ops: Completed TX pipeline phases 3/5/6/7/8 via REST API (no direct DB) | Built tx_pipeline_re** - {"agent_id": "TrueVow_Sales_Ops_Service", "action": "done", "status": "DONE", "message": "Sales Ops: Completed TX pipeline phases 3/5/6/7/8 via REST API (no direct DB) | Built tx_pipeline_rest.py for flattening attorneys, community tagging, firm segregation, attorney segregation | Added TX to enrich...
+  _by user - 2026-07-27_
+- **[7] [DONE] DONE: INTAKE: Validated all 16 Sales Ops Gap Analysis items for zero-touch customer onboarding | outcome:** - {"agent_id": "TrueVow_Tenant_Application_Service", "action": "done", "status": "DONE", "message": "INTAKE: Validated all 16 Sales Ops Gap Analysis items for zero-touch customer onboarding | outcome: 14/16 ready, 2 fixes committed (env vars + UUID callback), 2 non-blocker items remain | learned: CRM\...
+  _by user - 2026-07-27_
 - **[7] [PAUSED] DONE: SETTLE: pausing session 999bfecf | task: nationwide scraping expansion | user will resume from this** - {"agent_id": "TrueVow_Tenant_SETTLE-Service", "action": "done", "status": "PAUSED", "message": "SETTLE: pausing session 999bfecf | task: nationwide scraping expansion | user will resume from this exact session", "timestamp": "2026-07-27T15:27:46.460548+00:00", "working_dir": "C:\\Users\\yasha\\OneDr...
   _by user - 2026-07-27_
 - **[7] [PAUSED] DONE: INTAKE: pausing session (user closing window) | status: uncommitted changes on main, engine data-qua** - {"agent_id": "TrueVow_Tenant_Application_Service", "action": "done", "status": "PAUSED", "message": "INTAKE: pausing session (user closing window) | status: uncommitted changes on main, engine data-quality issues pending, LiveKit/Cartesia deploys pending | next: resume same session", "timestamp": "2...
