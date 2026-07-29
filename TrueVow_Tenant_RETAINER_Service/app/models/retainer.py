@@ -375,3 +375,111 @@ class RetainerProjectionCheckpoint(Base):
     )
     last_event_position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     rebuilt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class CandidateReview(Base):
+    __tablename__ = "candidate_reviews"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    workflow_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("retainer_workflows.id"), nullable=False
+    )
+    review_state: Mapped[str] = mapped_column(
+        String, nullable=False, default="UNREVIEWED"
+    )
+    prepared_by_actor_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    prepared_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    attorney_assigned_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    responsible_attorney_actor_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    candidate_version_reviewed: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+
+class ReviewWorkItem(Base):
+    __tablename__ = "review_work_items"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    workflow_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("retainer_workflows.id"), nullable=False
+    )
+    work_type: Mapped[str] = mapped_column(String, nullable=False)
+    assigned_actor_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    state: Mapped[str] = mapped_column(String, nullable=False, default="PENDING")
+    due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class MissingInformationRequest(Base):
+    __tablename__ = "missing_information_requests"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    workflow_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("retainer_workflows.id"), nullable=False
+    )
+    requested_by_actor_id: Mapped[str] = mapped_column(Text, nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    fields_required: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    state: Mapped[str] = mapped_column(String, nullable=False, default="OPEN")
+    requested_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class AuthorityEvaluation(Base):
+    __tablename__ = "authority_evaluations"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    workflow_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=True)
+    action: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_id: Mapped[str] = mapped_column(Text, nullable=False)
+    authority_class: Mapped[str] = mapped_column(String, nullable=False)
+    result: Mapped[str] = mapped_column(String, nullable=False)
+    policy_snapshot_id: Mapped[_uuid.UUID | None] = mapped_column(Uuid, nullable=True)
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    evaluated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class ConfigurationResolutionSnapshot(Base):
+    __tablename__ = "configuration_resolution_snapshots"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    workflow_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("retainer_workflows.id"), nullable=False
+    )
+    resolution_type: Mapped[str] = mapped_column(Text, nullable=False)
+    policy_version_id: Mapped[_uuid.UUID | None] = mapped_column(Uuid, nullable=True)
+    jurisdiction_profile_version_id: Mapped[_uuid.UUID | None] = mapped_column(Uuid, nullable=True)
+    resolution_data: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    resolved_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class AuditEvent(Base):
+    __tablename__ = "retainer_audit_events"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    workflow_id: Mapped[_uuid.UUID | None] = mapped_column(Uuid, nullable=True)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_id: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_role: Mapped[str | None] = mapped_column(Text, nullable=True)
+    authority_class: Mapped[str | None] = mapped_column(String, nullable=True)
+    action: Mapped[str] = mapped_column(Text, nullable=False)
+    result: Mapped[str] = mapped_column(String, nullable=False)
+    details: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
