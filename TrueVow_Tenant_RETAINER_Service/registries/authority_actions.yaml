@@ -1,0 +1,62 @@
+meta:
+  product: RETAINER
+  version: 1.0.0
+authority_classes:
+- SYS_ADMIN
+- FIRM_POLICY
+- STAFF_AUTH
+- ATTY_AUTH
+- CLIENT_AUTH
+- PROHIBITED
+actions:
+- action: retainer.candidate.import
+  authority: SYS_ADMIN
+  failure_mode: fail_closed
+- action: retainer.representation.prepare
+  authority: STAFF_AUTH
+  failure_mode: fail_closed
+- action: retainer.representation.decide
+  authority: ATTY_AUTH
+  failure_mode: fail_closed
+- action: retainer.conflict.search
+  authority: FIRM_POLICY
+  failure_mode: fail_closed
+- action: retainer.conflict.clear_or_hold
+  authority: ATTY_AUTH
+  failure_mode: fail_closed
+- action: retainer.template.resolve
+  authority: FIRM_POLICY
+  failure_mode: fail_closed
+- action: retainer.package.generate
+  authority: FIRM_POLICY
+  failure_mode: fail_closed
+- action: retainer.package.authorize_delivery
+  authority: FIRM_POLICY
+  failure_mode: fail_closed
+- action: retainer.package.deliver
+  authority: SYS_ADMIN
+  failure_mode: fail_closed
+- action: retainer.esign.consent
+  authority: CLIENT_AUTH
+  failure_mode: fail_closed
+- action: retainer.signature.client_apply
+  authority: CLIENT_AUTH
+  failure_mode: fail_closed
+- action: retainer.signature.firm_apply
+  authority: ATTY_AUTH
+  failure_mode: fail_closed
+- action: retainer.question.legal_respond
+  authority: ATTY_AUTH
+  failure_mode: fail_closed
+- action: retainer.reminder.send
+  authority: FIRM_POLICY
+  failure_mode: fail_closed
+- action: retainer.activation.authorize
+  authority: ATTY_AUTH
+  failure_mode: fail_closed
+- action: retainer.activation.execute
+  authority: FIRM_POLICY
+  failure_mode: fail_closed
+- action: retainer.platform.self_authorize
+  authority: PROHIBITED
+  failure_mode: fail_closed

@@ -1,0 +1,21 @@
+# RETAINER — Engagement Workflow and Matter Activation
+# Runtime
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.12
+pydantic>=2.9.0
+pydantic-settings>=2.6.0
+sqlalchemy[asyncio]>=2.0.30
+asyncpg>=0.29.0
+alembic>=1.13.0
+pyjwt[crypto]>=2.9.0
+cryptography>=43.0.0
+httpx>=0.27.0
+python-dotenv>=1.0.0
+
+# Dev / test
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+aiosqlite>=0.20.0
+ruff>=0.6.0
+mypy>=1.11.0

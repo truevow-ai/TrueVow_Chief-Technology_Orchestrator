@@ -1,0 +1,17 @@
+meta:
+  product: RETAINER
+  version: 1.0.0
+california_v1:
+  jurisdiction: CA
+  agreement_type: PI_CONTINGENCY_6147
+  direct_tenant_leads_only: true
+  named_attorney_representation_approval: true
+  named_attorney_conflict_clearance: true
+  named_attorney_activation: true
+  ai_authority_path: false
+  ai_legal_explanation: false
+  cross_firm_referral: false
+  sms_reminders_default: false
+  automated_voice_reminders: false
+  translated_authoritative_agreements: false
+  failure_mode: fail_closed

@@ -1,0 +1,85 @@
+meta:
+  product: RETAINER
+  version: 1.0.0
+scenarios:
+- id: E2E-001
+  name: Happy path
+  given_when: candidate handoff -> attorney approval -> conflict clearance -> package
+    -> consent -> signatures -> completed copy -> activation -> TRACE
+  then: matter.activated once; workflow ACTIVATED
+- id: E2E-002
+  name: Staff cannot approve
+  given_when: staff attempts representation decision
+  then: 403 RET_AUTHORITY_MISSING; no approval event
+- id: E2E-003
+  name: No-match is not clearance
+  given_when: search completes with zero matches then delivery attempted
+  then: blocked until attorney conflict decision
+- id: E2E-004
+  name: Conflict hold
+  given_when: attorney applies hold
+  then: state CONFLICT_HOLD; package/delivery blocked
+- id: E2E-005
+  name: Party change invalidates clearance
+  given_when: new party added after clearance
+  then: clearance stale; new search/review required
+- id: E2E-006
+  name: Legal question
+  given_when: client asks clause meaning
+  then: question escalated; no automated legal response
+- id: E2E-007
+  name: Electronic consent declined
+  given_when: client declines e-sign consent
+  then: electronic signing blocked; alternative work item
+- id: E2E-008
+  name: Signature invalidated
+  given_when: provider evidence mismatch
+  then: original evidence preserved; state SIGNATURE_PENDING
+- id: E2E-009
+  name: Completed-copy gate
+  given_when: activation attempted before copy delivery
+  then: blocked fail closed
+- id: E2E-010
+  name: Duplicate activation
+  given_when: same idempotency key repeated
+  then: same matter/result; no duplicate
+- id: E2E-011
+  name: Conflicting duplicate activation
+  given_when: same key different request hash
+  then: 409 security/reconciliation
+- id: E2E-012
+  name: Activation timeout
+  given_when: canonical owner times out
+  then: state ACTIVATION_PENDING; reconciliation; no inferred matter
+- id: E2E-013
+  name: Expired package
+  given_when: policy timer expires unsigned package
+  then: DECLINED_OR_EXPIRED; reminders stop
+- id: E2E-014
+  name: Client decline
+  given_when: client declines in portal
+  then: DECLINED_OR_EXPIRED; suppression recorded
+- id: E2E-015
+  name: Attorney withdrawal
+  given_when: attorney withdraws before activation
+  then: terminal; no activation
+- id: E2E-016
+  name: Inactive tenant
+  given_when: delivery attempted after tenant disabled
+  then: blocked and audited
+- id: E2E-017
+  name: Cross-tenant access
+  given_when: tenant A requests tenant B package/token
+  then: not found/denied; security event
+- id: E2E-018
+  name: Document hash mismatch
+  given_when: provider returns altered bytes
+  then: blocked; incident/reconciliation
+- id: E2E-019
+  name: SMS revocation race
+  given_when: reminder due concurrent with revocation
+  then: no send after effective revocation
+- id: E2E-020
+  name: Projection rebuild
+  given_when: delete rebuildable projection and replay
+  then: same query result; no external side effects

@@ -1,0 +1,91 @@
+{
+  "name": "TrueVow RETAINER Build Pack",
+  "version": "1.0.0",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "f528e61b6990c2cdeb50c2197ab4f03b61688ecd3e2d3bd3cf036e27c9f153cf",
+      "bytes": 708
+    },
+    {
+      "path": "coding_agent/BUILD_SEQUENCE.md",
+      "sha256": "05f6f25eb35f2e11323b04127a4603acfcab2540239a57de09fd0a2add1fab92",
+      "bytes": 1472
+    },
+    {
+      "path": "coding_agent/DO_NOT_REGRESS.md",
+      "sha256": "0d8e9b66d7f3cd9980c143e44272207c5101177193b4b5521d20b57954b29ed3",
+      "bytes": 924
+    },
+    {
+      "path": "coding_agent/requirement_traceability.csv",
+      "sha256": "12958a18a236824e73712df967a9a34d40021f423a00b4610c322dc802a88034",
+      "bytes": 10621
+    },
+    {
+      "path": "contracts/candidate-handoff.schema.json",
+      "sha256": "d504aa4dd6a9f3d51f24053e0a3e235642a7e306325f53d60cc1299fe21bc51e",
+      "bytes": 2009
+    },
+    {
+      "path": "contracts/event-envelope.schema.json",
+      "sha256": "1f3e62e65f41dd70900cb422bf19e4c6e79588b7fba4048962c1a23872c249d6",
+      "bytes": 2594
+    },
+    {
+      "path": "contracts/matter-activation.schema.json",
+      "sha256": "0c38728f048ffd4d9dbf3e453a891504bbe96b63a3b90c8d1ca208d736bdce7c",
+      "bytes": 2008
+    },
+    {
+      "path": "contracts/openapi.yaml",
+      "sha256": "f136f76318aa142a1702a3cac9f168a8ab114b1594fca10471807e6e6581cf19",
+      "bytes": 8032
+    },
+    {
+      "path": "database/retainer_schema.sql",
+      "sha256": "736bbcb742449f0e038c9e3e3cf68f6d0986e475fe1ebc41e0b0d557a6f096a2",
+      "bytes": 9215
+    },
+    {
+      "path": "docs/TrueVow_RETAINER_Product_Architecture_and_Build_Specification_v1.0.docx",
+      "sha256": "5583bccae5fb4f5e56bbe38dcdeeb59eee68995f378693390162ebef677f14f1",
+      "bytes": 70497
+    },
+    {
+      "path": "docs/TrueVow_RETAINER_Product_Architecture_and_Build_Specification_v1.0.md",
+      "sha256": "d772b7015d2acce3248300a2e6018cbc15841f36eff603a9f01d5db6cd89c972",
+      "bytes": 91752
+    },
+    {
+      "path": "registries/authority_actions.yaml",
+      "sha256": "e414037ae2ecc9c19a6d05f496390066b7b9aef2d4b4d106e8e66aa80f14e38b",
+      "bytes": 1694
+    },
+    {
+      "path": "registries/events.yaml",
+      "sha256": "5a12650a292552dc0eb2f480be4e3d03615ebddc089aa2d932e32d9a58aec6e4",
+      "bytes": 3179
+    },
+    {
+      "path": "registries/states.yaml",
+      "sha256": "8ce7f263b48c68dc20221b28f1f4e8d18639476aac72af36c6099c918879c693",
+      "bytes": 1250
+    },
+    {
+      "path": "registries/transitions.yaml",
+      "sha256": "260926353e8ceacc3ab65eda7112d70665e4dd262532da3592544ad76b64ca10",
+      "bytes": 8069
+    },
+    {
+      "path": "registries/workflow_policies.yaml",
+      "sha256": "a364305616b60a532fd3149bc1d8580c8c605d0cbadb265db863c6f233407983",
+      "bytes": 496
+    },
+    {
+      "path": "tests/acceptance_scenarios.yaml",
+      "sha256": "05a370764715302a795412ec9031feffee4b6df39755e5957986ba63bf187049",
+      "bytes": 2930
+    }
+  ]
+}

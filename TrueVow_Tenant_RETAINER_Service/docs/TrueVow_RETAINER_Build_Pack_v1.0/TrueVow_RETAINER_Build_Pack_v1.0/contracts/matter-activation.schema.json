@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.truevow.example/matter/activate-matter-v1.schema.json",
+  "title": "ActivateMatterCommand",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "tenant_id",
+    "engagement_workflow_id",
+    "representation_decision_id",
+    "conflict_review_id",
+    "engagement_package_id",
+    "executed_document_version_ids",
+    "signature_evidence_ids",
+    "completed_copy_delivery_id",
+    "jurisdiction_profile_version_id",
+    "activation_policy_version_id",
+    "activation_authority_record_id",
+    "source_manifest_hash"
+  ],
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "engagement_workflow_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "representation_decision_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "conflict_review_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "engagement_package_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "executed_document_version_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "signature_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "completed_copy_delivery_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "jurisdiction_profile_version_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "activation_policy_version_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "activation_authority_record_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "responsible_attorney_actor_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_manifest_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

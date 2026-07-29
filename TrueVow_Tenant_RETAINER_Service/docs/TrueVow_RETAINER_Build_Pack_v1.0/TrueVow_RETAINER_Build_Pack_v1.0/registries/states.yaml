@@ -1,0 +1,32 @@
+meta:
+  product: RETAINER
+  version: 1.0.0
+  ontology_registry_version: '1.0'
+aggregate_type: EngagementWorkflow
+states:
+- state: NOT_STARTED
+  meaning: No firm-approved engagement workflow exists.
+- state: ATTORNEY_APPROVAL_RECORDED
+  meaning: Representation approval and scope are attributable.
+- state: CONFLICT_REVIEW_PENDING
+  meaning: Potential conflicts await review.
+- state: CONFLICT_HOLD
+  meaning: Workflow blocked by unresolved conflict concern.
+- state: PACKAGE_PREPARATION
+  meaning: Approved templates and facts are being assembled.
+- state: DELIVERY_AUTHORIZED
+  meaning: Required authority to deliver has been verified.
+- state: DELIVERED
+  meaning: Package reached the intended recipient.
+- state: CLIENT_REVIEW
+  meaning: Prospect is reviewing, asking questions, or awaiting counsel discussion.
+- state: SIGNATURE_PENDING
+  meaning: Required signatures are outstanding.
+- state: FULLY_EXECUTED
+  meaning: Required parties signed the locked package version.
+- state: ACTIVATION_PENDING
+  meaning: Non-signature activation conditions remain.
+- state: ACTIVATED
+  meaning: Matter and representation relationship were created.
+- state: DECLINED_OR_EXPIRED
+  meaning: Prospect declined, authorization was withdrawn, or package expired.

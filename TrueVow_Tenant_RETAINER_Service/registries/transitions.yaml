@@ -1,0 +1,321 @@
+meta:
+  product: RETAINER
+  version: 1.0.0
+transitions:
+- id: TR-RET-001
+  command: ApproveRepresentation
+  from_states:
+  - NOT_STARTED
+  to_state: ATTORNEY_APPROVAL_RECORDED
+  required_authority: ATTY_AUTH
+  required_evidence:
+  - representation_decision
+  - responsible_attorney_candidate
+  - scope_definition
+  guards:
+  - tenant.active_or_trial
+  - candidate.current
+  - actor.verified_attorney
+  event_type: representation.approved_by_attorney
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-002
+  command: DeclineRepresentation
+  from_states:
+  - NOT_STARTED
+  to_state: DECLINED_OR_EXPIRED
+  required_authority: ATTY_AUTH
+  required_evidence:
+  - representation_decision
+  guards:
+  - tenant.active_or_trial
+  - candidate.current
+  - actor.verified_attorney
+  event_type: representation.declined_by_attorney
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-003
+  command: RequestConflictReview
+  from_states:
+  - ATTORNEY_APPROVAL_RECORDED
+  to_state: CONFLICT_REVIEW_PENDING
+  required_authority: FIRM_POLICY
+  required_evidence:
+  - conflict_search
+  guards:
+  - search.completed
+  - search.tenant_scoped
+  event_type: conflict.review_requested
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-004
+  command: ApplyConflictHold
+  from_states:
+  - CONFLICT_REVIEW_PENDING
+  - PACKAGE_PREPARATION
+  to_state: CONFLICT_HOLD
+  required_authority: ATTY_AUTH
+  required_evidence:
+  - conflict_review
+  guards:
+  - actor.verified_attorney
+  event_type: conflict.hold_applied
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-005
+  command: ClearConflict
+  from_states:
+  - CONFLICT_REVIEW_PENDING
+  - CONFLICT_HOLD
+  to_state: PACKAGE_PREPARATION
+  required_authority: ATTY_AUTH
+  required_evidence:
+  - conflict_clearance_decision
+  guards:
+  - actor.verified_attorney
+  - party_set.current
+  event_type: conflict.cleared_by_attorney
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-006
+  command: ResolveTemplate
+  from_states:
+  - PACKAGE_PREPARATION
+  to_state: PACKAGE_PREPARATION
+  required_authority: FIRM_POLICY
+  required_evidence:
+  - template_resolution
+  guards:
+  - jurisdiction_profile.effective
+  - template.approved
+  - template.current
+  event_type: template.resolved
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-007
+  command: GeneratePackage
+  from_states:
+  - PACKAGE_PREPARATION
+  to_state: PACKAGE_PREPARATION
+  required_authority: FIRM_POLICY
+  required_evidence:
+  - package_manifest
+  - preflight_result
+  guards:
+  - template.resolved
+  - merge_fields.valid
+  - required_disclosures.present
+  event_type: package.generated
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-008
+  command: AuthorizeDelivery
+  from_states:
+  - PACKAGE_PREPARATION
+  to_state: DELIVERY_AUTHORIZED
+  required_authority: FIRM_POLICY
+  required_evidence:
+  - delivery_authorization
+  guards:
+  - representation.approved
+  - conflict.cleared
+  - package.locked
+  - tenant.active_or_trial
+  event_type: package.delivery_authorized
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-009
+  command: DeliverPackage
+  from_states:
+  - DELIVERY_AUTHORIZED
+  to_state: DELIVERED
+  required_authority: SYS_ADMIN
+  required_evidence:
+  - delivery_attempt
+  guards:
+  - channel.allowed
+  - recipient.verified
+  - package.hash_matches
+  event_type: package.delivered
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-010
+  command: BeginClientReview
+  from_states:
+  - DELIVERED
+  to_state: CLIENT_REVIEW
+  required_authority: CLIENT_AUTH
+  required_evidence:
+  - portal_access_event
+  guards:
+  - access.valid
+  - package.current
+  event_type: engagement.client_review_started
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-011
+  command: RequestSignatures
+  from_states:
+  - DELIVERED
+  - CLIENT_REVIEW
+  to_state: SIGNATURE_PENDING
+  required_authority: FIRM_POLICY
+  required_evidence:
+  - signature_ceremony
+  guards:
+  - esign_consent.effective
+  - signer_requirements.complete
+  event_type: signature.requested
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-012
+  command: ApplySignature
+  from_states:
+  - SIGNATURE_PENDING
+  to_state: SIGNATURE_PENDING
+  required_authority: CLIENT_AUTH / ATTY_AUTH
+  required_evidence:
+  - signature_evidence
+  guards:
+  - signer.authenticated
+  - intent.captured
+  - document.hash_matches
+  event_type: signature.applied
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-013
+  command: InvalidateSignature
+  from_states:
+  - SIGNATURE_PENDING
+  - FULLY_EXECUTED
+  to_state: SIGNATURE_PENDING
+  required_authority: FIRM_POLICY / ATTY_AUTH
+  required_evidence:
+  - signature_invalidation
+  guards:
+  - reason.recorded
+  - actor.authorized
+  event_type: signature.invalidated
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-014
+  command: MarkFullyExecuted
+  from_states:
+  - SIGNATURE_PENDING
+  to_state: FULLY_EXECUTED
+  required_authority: SYS_ADMIN
+  required_evidence:
+  - signature_completion_check
+  guards:
+  - all_required_signatures.valid
+  - all_acknowledgments.complete
+  - package.hash_matches
+  event_type: package.fully_executed
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-015
+  command: DeliverCompletedCopy
+  from_states:
+  - FULLY_EXECUTED
+  to_state: ACTIVATION_PENDING
+  required_authority: SYS_ADMIN
+  required_evidence:
+  - completed_copy_delivery
+  guards:
+  - delivery.retainable
+  - final_hash.matches
+  event_type: completed_copy.delivered
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-016
+  command: AuthorizeMatterActivation
+  from_states:
+  - ACTIVATION_PENDING
+  to_state: ACTIVATION_PENDING
+  required_authority: ATTY_AUTH
+  required_evidence:
+  - activation_authorization
+  - activation_checklist
+  guards:
+  - checklist.all_required_pass
+  - actor.verified_attorney
+  event_type: matter.activation_authorized
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-017
+  command: ConfirmMatterActivated
+  from_states:
+  - ACTIVATION_PENDING
+  to_state: ACTIVATED
+  required_authority: FIRM_POLICY
+  required_evidence:
+  - matter_activation_result
+  guards:
+  - matter_id.present
+  - activation_id.matches
+  - event.valid
+  event_type: matter.activated
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-018
+  command: ExpireEngagement
+  from_states:
+  - ATTORNEY_APPROVAL_RECORDED
+  - CONFLICT_REVIEW_PENDING
+  - CONFLICT_HOLD
+  - PACKAGE_PREPARATION
+  - DELIVERY_AUTHORIZED
+  - DELIVERED
+  - CLIENT_REVIEW
+  - SIGNATURE_PENDING
+  - FULLY_EXECUTED
+  - ACTIVATION_PENDING
+  to_state: DECLINED_OR_EXPIRED
+  required_authority: FIRM_POLICY
+  required_evidence:
+  - expiration_policy_snapshot
+  - expiration_event
+  guards:
+  - policy.due
+  - no_activation_success
+  event_type: engagement.expired
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-019
+  command: RecordClientDecline
+  from_states:
+  - DELIVERED
+  - CLIENT_REVIEW
+  - SIGNATURE_PENDING
+  to_state: DECLINED_OR_EXPIRED
+  required_authority: CLIENT_AUTH
+  required_evidence:
+  - client_decline
+  guards:
+  - actor.matches_recipient
+  event_type: engagement.declined_by_client
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed
+- id: TR-RET-020
+  command: WithdrawAuthorization
+  from_states:
+  - ATTORNEY_APPROVAL_RECORDED
+  - CONFLICT_REVIEW_PENDING
+  - CONFLICT_HOLD
+  - PACKAGE_PREPARATION
+  - DELIVERY_AUTHORIZED
+  - DELIVERED
+  - CLIENT_REVIEW
+  - SIGNATURE_PENDING
+  - FULLY_EXECUTED
+  - ACTIVATION_PENDING
+  to_state: DECLINED_OR_EXPIRED
+  required_authority: ATTY_AUTH
+  required_evidence:
+  - authorization_withdrawal
+  guards:
+  - actor.verified_attorney
+  - matter.not_activated
+  event_type: engagement.authorization_withdrawn
+  aggregate_type: EngagementWorkflow
+  failure_mode: fail_closed

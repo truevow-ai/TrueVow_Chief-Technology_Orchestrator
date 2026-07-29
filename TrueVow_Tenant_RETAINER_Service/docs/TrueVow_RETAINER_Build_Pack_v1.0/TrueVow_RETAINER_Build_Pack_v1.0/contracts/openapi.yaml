@@ -1,0 +1,303 @@
+openapi: 3.1.0
+info:
+  title: TrueVow RETAINER API
+  version: 1.0.0
+servers:
+- url: /api/v1
+paths:
+  /candidates/import:
+    post:
+      summary: Import an INTAKE candidate handoff
+      operationId: importCandidate
+      responses:
+        '202':
+          description: Accepted
+        '409':
+          description: Version conflict
+  /candidates/{candidate_id}/decisions:
+    post:
+      summary: Record attorney representation decision
+      operationId: recordRepresentationDecision
+      parameters:
+      - name: candidate_id
+        in: path
+        required: true
+        schema: &id001
+          type: string
+          format: uuid
+      responses:
+        '201':
+          description: Decision recorded
+        '403':
+          description: Authority denied
+  /workflows/{workflow_id}/conflict-searches:
+    post:
+      summary: Start conflict search
+      operationId: startConflictSearch
+      parameters:
+      - name: workflow_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '202':
+          description: Started
+  /conflict-reviews/{review_id}/decisions:
+    post:
+      summary: Record attorney conflict decision
+      operationId: recordConflictDecision
+      parameters:
+      - name: review_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '201':
+          description: Recorded
+  /workflows/{workflow_id}/packages:
+    post:
+      summary: Generate engagement package
+      operationId: generatePackage
+      parameters:
+      - name: workflow_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '201':
+          description: Generated
+        '422':
+          description: Preflight failed
+  /packages/{package_id}/authorize-delivery:
+    post:
+      summary: Authorize package delivery
+      operationId: authorizeDelivery
+      parameters:
+      - name: package_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Authorized
+  /workflows/{workflow_id}/authorize-activation:
+    post:
+      summary: Record attorney activation authorization
+      operationId: authorizeActivation
+      parameters:
+      - name: workflow_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Authorized
+  /workflows/{workflow_id}/activate:
+    post:
+      summary: Execute canonical matter activation
+      operationId: activateMatter
+      parameters:
+      - name: workflow_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '202':
+          description: Activation submitted
+        '409':
+          description: State/evidence conflict
+  /workflows/{workflow_id}:
+    get:
+      summary: Get workflow
+      operationId: getWorkflow
+      parameters:
+      - name: workflow_id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Workflow
+components:
+  schemas:
+    EventEnvelope:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://contracts.truevow.example/events/event-envelope-v1.0.1.schema.json
+      title: TrueVow EventEnvelope
+      type: object
+      additionalProperties: false
+      required:
+      - event_id
+      - event_type
+      - occurred_at
+      - recorded_at
+      - tenant_id
+      - aggregate_type
+      - aggregate_id
+      - aggregate_version
+      - actor_type
+      - actor_id
+      - authority_class
+      - authority_record_id
+      - policy_version_id
+      - correlation_id
+      - causation_id
+      - payload
+      - sensitivity_class
+      - schema_version
+      properties:
+        event_id: *id001
+        event_type:
+          type: string
+          pattern: ^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$
+        occurred_at:
+          type: string
+          format: date-time
+        recorded_at:
+          type: string
+          format: date-time
+        tenant_id: *id001
+        aggregate_type:
+          type: string
+          minLength: 1
+        aggregate_id: *id001
+        aggregate_version:
+          type: integer
+          minimum: 1
+        actor_type:
+          type: string
+          minLength: 1
+        actor_id:
+          oneOf:
+          - *id001
+          - type: string
+            minLength: 1
+        authority_class:
+          enum:
+          - SYS_ADMIN
+          - FIRM_POLICY
+          - STAFF_AUTH
+          - ATTY_AUTH
+          - CLIENT_AUTH
+          - PROHIBITED
+        authority_record_id:
+          oneOf:
+          - *id001
+          - type: 'null'
+        policy_version_id:
+          oneOf:
+          - *id001
+          - type: 'null'
+        correlation_id: *id001
+        causation_id:
+          oneOf:
+          - *id001
+          - type: 'null'
+        payload:
+          type: object
+        sensitivity_class:
+          type: string
+          minLength: 1
+        schema_version:
+          type: string
+          pattern: ^[0-9]+\.[0-9]+\.[0-9]+$
+    CandidateHandoff:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://contracts.truevow.example/retainer/candidate-handoff-v1.schema.json
+      title: CandidateSubmittedForRepresentationReview
+      type: object
+      additionalProperties: false
+      required:
+      - tenant_id
+      - matter_candidate_id
+      - candidate_version
+      - prospective_client_party_role_ids
+      - intake_session_ids
+      - consent_record_ids
+      - communication_ids
+      - source_event_ids
+      - submitted_by_actor_id
+      - submitted_at
+      properties:
+        tenant_id: *id001
+        matter_candidate_id: *id001
+        candidate_version:
+          type: integer
+          minimum: 1
+        prospective_client_party_role_ids:
+          type: array
+          items: *id001
+          minItems: 1
+          uniqueItems: true
+        intake_session_ids:
+          type: array
+          items: *id001
+          uniqueItems: true
+        qualification_assessment_id:
+          oneOf:
+          - *id001
+          - type: 'null'
+        consent_record_ids:
+          type: array
+          items: *id001
+          uniqueItems: true
+        communication_ids:
+          type: array
+          items: *id001
+          uniqueItems: true
+        source_event_ids:
+          type: array
+          items: *id001
+          minItems: 1
+          uniqueItems: true
+        submitted_by_actor_id:
+          type: string
+          minLength: 1
+        submitted_at:
+          type: string
+          format: date-time
+    ActivateMatterCommand:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://contracts.truevow.example/matter/activate-matter-v1.schema.json
+      title: ActivateMatterCommand
+      type: object
+      additionalProperties: false
+      required:
+      - tenant_id
+      - engagement_workflow_id
+      - representation_decision_id
+      - conflict_review_id
+      - engagement_package_id
+      - executed_document_version_ids
+      - signature_evidence_ids
+      - completed_copy_delivery_id
+      - jurisdiction_profile_version_id
+      - activation_policy_version_id
+      - activation_authority_record_id
+      - source_manifest_hash
+      properties:
+        tenant_id: *id001
+        engagement_workflow_id: *id001
+        representation_decision_id: *id001
+        conflict_review_id: *id001
+        engagement_package_id: *id001
+        executed_document_version_ids:
+          type: array
+          items: *id001
+          minItems: 1
+          uniqueItems: true
+        signature_evidence_ids:
+          type: array
+          items: *id001
+          minItems: 1
+          uniqueItems: true
+        completed_copy_delivery_id: *id001
+        jurisdiction_profile_version_id: *id001
+        activation_policy_version_id: *id001
+        activation_authority_record_id: *id001
+        responsible_attorney_actor_id:
+          type: string
+          minLength: 1
+        source_manifest_hash:
+          type: string
+          pattern: ^[a-f0-9]{64}$

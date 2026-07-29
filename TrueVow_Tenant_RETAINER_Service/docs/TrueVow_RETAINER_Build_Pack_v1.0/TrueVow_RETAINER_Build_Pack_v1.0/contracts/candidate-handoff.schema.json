@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.truevow.example/retainer/candidate-handoff-v1.schema.json",
+  "title": "CandidateSubmittedForRepresentationReview",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "tenant_id",
+    "matter_candidate_id",
+    "candidate_version",
+    "prospective_client_party_role_ids",
+    "intake_session_ids",
+    "consent_record_ids",
+    "communication_ids",
+    "source_event_ids",
+    "submitted_by_actor_id",
+    "submitted_at"
+  ],
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "matter_candidate_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "candidate_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "prospective_client_party_role_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "intake_session_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "uniqueItems": true
+    },
+    "qualification_assessment_id": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "consent_record_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "uniqueItems": true
+    },
+    "communication_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "uniqueItems": true
+    },
+    "source_event_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "submitted_by_actor_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
