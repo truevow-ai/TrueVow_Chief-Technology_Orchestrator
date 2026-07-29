@@ -3,6 +3,9 @@
 Resolves the database URL from RETAINER_DATABASE_URL / DATABASE_URL and
 runs migrations against Supabase Postgres. Not exercised by the test suite
 (tests build schema from SQLAlchemy metadata on SQLite).
+
+Uses retainer.alembic_version as the version table to avoid conflicts with
+other services sharing the same database instance.
 """
 
 from __future__ import annotations
@@ -35,19 +38,31 @@ def _db_url() -> str:
     return url
 
 
+def _configure_context(connection=None):
+    kwargs = {
+        "target_metadata": target_metadata,
+        "version_table": "alembic_version",
+        "version_table_schema": "retainer",
+    }
+    if connection is not None:
+        kwargs["connection"] = connection
+    else:
+        kwargs.update(
+            url=_db_url(),
+            literal_binds=True,
+            dialect_opts={"paramstyle": "named"},
+        )
+    context.configure(**kwargs)
+
+
 def run_migrations_offline() -> None:
-    context.configure(
-        url=_db_url(),
-        target_metadata=target_metadata,
-        literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
-    )
+    _configure_context()
     with context.begin_transaction():
         context.run_migrations()
 
 
 def _do_run_migrations(connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    _configure_context(connection=connection)
     with context.begin_transaction():
         context.run_migrations()
 
