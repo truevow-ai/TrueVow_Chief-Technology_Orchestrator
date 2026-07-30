@@ -3,10 +3,10 @@
 > AUTO-GENERATED from memory.db by `python TrueVow_Shared_Orchestration/memory.py export`.
 > Do NOT edit by hand - changes are overwritten. Source of truth: `TrueVow_Shared_Codebase_Memory/memory.db`.
 
-- Generated: 2026-07-29T05:00:24.509227+00:00
-- Total memories: 219
+- Generated: 2026-07-30T01:29:39.264060+00:00
+- Total memories: 224
 
-## High-importance decisions (8+, routine noise excluded) - 97
+## High-importance decisions (8+, routine noise excluded) - 99
 
 - **[10][architecture] TRACE full system architecture documented** - TRACE service (port 3036) runs as second pipeline stage (INTAKE -> TRACE -> SETTLE). Backend: Python FastAPI with JWT auth, Supabase Postgres+Storage, DeepSeek LLM. Portal: Next.js 14 at port 3031 with 6 TRACE pages, universal proxy route generating HS256 JWT. 28 API endpoints covering cases, providers, fax, documents, chronology, liens, export, webhooks. Inbound email via Resend webhook, inbound fax via Documo callback. 60/60 tests passing. Documentation at docs/00-Planning/TRACE-Agent-Coding-Instructions.md Appendix A.
   _by Admin - 2026-07-24 - tags: -_
@@ -38,6 +38,8 @@
   _by user - 2026-06-25 - tags: intake, voice-bridge, gemini, dograh, assemblyai, pipecat, xai, fsm, workflow, orchestration_
 - **[10][architecture] LEVERAGE (ex-DRAFT) — 3-Tier Rules Engine, NO AI** - LEVERAGE is a 3-tier legal rule validation system: TIER 1: State/Jurisdiction rules (mandatory, cannot be disabled). TIER 2: Practice Area rules (customizable). TIER 3: Firm/Attorney/Client-specific rules. CORE PRINCIPLE: NO AI — no machine learning, no neural networks, no LLM. Uses peer benchmarking (real firm data) and FSM engine analysis. Features: citation checking, server-side validation, customer portal UI (4 tabs: Validate, History, Rules, Downloads), SaaS Admin compliance reports (React), template browser. v2.0 with global templates from SaaS Admin + tenant-specific rules. 98.25% complete. Stack: Python/FastAPI + Next.js frontend. Was previously called DRAFT — fully renamed to LEVERAGE.
   _by user - 2026-06-25 - tags: leverage, rules-engine, no-ai, peer-benchmarking, fsm, 3-tier, citation, compliance_
+- **[10][bug] Engine Name Capture Corruption** - From 2026-07-29 test call transcript: contact_name corrupted through 5 different garbage values in a single 13-min call (call me Shaula → Me. Just Yeshua → Normal Conversation. Takes Place → K. P K). Root cause: _try_extract_intro_name and _try_correct_name over-fire on sentence fragments, treating any multi-word input as a name correction. contact_first_name stored as 'call' (from 'you can call me'). Also: workflow resets to greeting node mid-wrap-up after FAQ answer, error node as dead-end trap (6 occurrences), duplicate contact sequences run twice, phone spoken-digit normalization fails for 'nine two one five five five one three three'.
+  _by Admin - 2026-07-30 - tags: -_
 - **[10][bug] TRACE 9 bugs fixed Jul 24 2026** - 1) extraction_confidence VARCHAR(10->32) overflow on DO_NOT_REQUEST value. 2) audit_log.action VARCHAR(100->255) overflow on long paths. 3) get_case no firm_id filter (SECURITY: firm isolation gap). 4) ChronologyExporter export_json/export_pdf called with wrong params in qa.py. 5) LOCAL_JWT_SECRET not set in .env.local causing auth failure. 6) .env.local @DOCUMENTATION parse error on line 491. 7) Portal proxy returned 401 (no JWT generation). 8) TRACE not visible to non-admin users (no tenantId fallback). 9) Billing proxy fallback missing trace feature. All fixed in code. Schema fixes (#1, #2) still need ALTER TABLE on Supabase production DB.
   _by Admin - 2026-07-24 - tags: -_
 - **[10][bug] Fly auto-stop blocked by setInterval loops — unref() required** - CRITICAL: Four server-side setInterval timers in Sales Ops were preventing Fly.io auto-stop from working. The fly.toml had auto_stop_machines = true and min_machines_running = 0, but the machines ran 24/7 because Node.js event loop never drained. Root cause: setInterval creates a timer reference that Node counts as 'pending work'. Fly cannot suspend a machine whose process won't exit. The four offenders in Sales Ops: 1. Logger — 5s flush interval (lib/utils/logger.ts) 2. SecurityMonitor — 5s anomaly scan (lib/ai-agents/security/security-monitor.ts) 3. RateLimiter — 300s cleanup (lib/middleware/rate-limiter.ts) 4. HeartbeatTask — 300s registry heartbeat (lib/integrations/internal-ops-registry-client.ts) Fix: Add .unref() to every setInterval call on the server side. This tells Node 'don't consider this timer as keeping the process alive.' The interval still fires while the process is running, but when Fly determines the machine is idle and sends SIGTERM, the process can exit cleanly. Pattern: const interval = setInterval(() => { ... }, ms); interval.unref(); AUDIT CHECKLIST for every other TrueVow service deployed on fly.io: 1. Search for ALL setInterval calls in server-side code (not browser/client components) 2. Every one that doesn't already have .unref() MUST get it 3. Pay special attention to: loggers, monitoring loops, health-check pings, cleanup tasks, heartbeat tasks, polling loops 4. Also check: email-verifier/reacher-truevow had NO auto_stop_machines config at all in its fly.toml — it ran 24/7. All fly.toml files need auto_stop_machines = true, auto_start_machines = true, min_machines_running = 0 5. Verify: deploy, wait 10 minutes with no traffic, check 'fly status' — machine should show 'stopped' Estimated cost impact if unfixed: ~/machine/month for shared-cpu VMs running 24/7 vs ~-5/month with auto-stop.
@@ -130,6 +132,8 @@
   _by user - 2026-07-01 - tags: -_
 - **[9][todo] xai_cloud NEXT STEPS after C->B conversion** - DONE: C->B force_message conversion, VQM wiring, per-node VAD, missing test helpers (_VOICES/_DEFAULT_VOICE/_build_collected_data_text/_vad_for_node/_VAD_*), frontend rebuild w/ End Call+event log+report download. 40/40 tests pass. NOT YET DONE / NEXT: (1) USER LIVE TEST PENDING on http://127.0.0.1:3023/demo/xai_cloud_test.html — verify no more repetition loop, check transcripts/{sid}-report.json. (2) Add 3-retry-then-escalate guard in WorkflowEngine (industry doc HIGH priority; pushback loops forever currently). (3) 'You mean X?' repair pattern (Dialogflow §2). (4) Preamble/soft-timeout filler on slow LLM-routing nodes (1.5-3.2s classification nodes: conflict_check_prior_rep, opi_jurisdiction). (5) NOT committed yet — commit after successful live test. Ref: docs/VOICE_AI_INDUSTRY_ANALYSIS.md gap table, VOICE_AGENT_CHECKLIST.md §11.
   _by Admin - 2026-07-13 - tags: -_
+- **[8][architecture] LiveKit Bridge Agent v2026-07-29 Deploy** - 6 bridge-level fixes deployed to LiveKit Cloud agent CA_UxWtcHqLEUTp vG934iLXXNzGN: (1) greeting allow_interruptions=False prevents mic-echo cut-off, (2) FAQ bypass injects system message blocking route_workflow when firm policy answers question, (3) _build_collected_data_text filters _seq/_spell/_verify suffix keys and unresolved {template} values, (4) summary node type strips verbose engine data dump from prompt, (5) {placeholder} sanitization removes unresolved templates, (6) ROUTE_HTTP_TIMEOUT_S default raised 8→15s. All tests: 93/93 LiveKit + 40/40 xAI + 14/14 engine passing.
+  _by Admin - 2026-07-30 - tags: -_
 - **[8][architecture] tx_pipeline_rest.py REST API runner** - Created scripts/tx_pipeline_rest.py — full pipeline runner using Supabase REST API only. Handles Phase 3 (flatten attorneys), Phase 7a (community tagging), Phase 7b (firm segregation), Phase 8 (attorney cohort segregation). Uses raw HTTP and supabase client for inserts. Avoids psycopg2/asyncpg dependency.
   _by Admin - 2026-07-27 - tags: -_
 - **[8][architecture] Softphone: Redis shared store + wired into 3 dashboards (Clerk-signed iframe)** - Two wirings completed. (1) REDIS SHARED STORE: new store.py with InMemoryStore + RedisStore behind one interface; get_store() picks Redis when REDIS_URL set, else in-memory, and degrades to in-memory if Redis unreachable at boot (never drops the phone line). registry.py + messages.py now delegate to the store (no more module-level dicts). Redis keys: sp:online (zset by last-seen ts, TTL 90s), sp:assign:<caller> (string), sp:inbox:<identity> (list of JSON, capped 500). Dockerfile CMD now uses WEB_CONCURRENCY env (default 1; raise only with Redis). requirements+redis>=5. Tests: 31 passed + 3 Redis tests self-skip without server (tests/test_store.py). conftest uses store.reset_store() between tests. (2) DASHBOARD INTEGRATION for Sales Ops, Customer Success CORE, SaaS Admin (all App Router + Clerk + npm + @/ alias->root): added to each: lib/softphone/signAgentToken.ts (crypto HMAC mirroring auth.py, base64url agentId.expiry.sig), app/api/softphone/token/route.ts (GET: auth() -> Clerk userId -> signAgentToken -> {token}), components/softphone/Softphone.tsx ('use client' persistent docked iframe bottom-right, useUser, fetches /api/softphone/token, postMessage type:truevow-auth to NEXT_PUBLIC_SOFTPHONE_URL, refreshes token every 45min, toggle button). Mounted <Softphone/> in each (dashboard) layout shell so it survives navigation: Sales layout.tsx (client), SaaS layout.tsx (client), CSM layout-client.tsx. Agent identity = Clerk userId so inbound rings the right agent. Each dashboard env needs NEXT_PUBLIC_SOFTPHONE_URL + SOFTPHONE_SIGNING_SECRET (appended to their env files). signAgentToken.ts type-checks clean. NOTE: the 3 dashboards are separate git repos - their code changes are uncommitted there, not in the CTO repo.
@@ -203,7 +207,7 @@
 - **[8][todo] FIX gitignore source-leak: TrueVow-Tenant_Billing-Service** - ASSIGNED to the TrueVow-Tenant_Billing-Service agent. Real lib/ source is currently hidden from git (confirmed). Run the playbook: TrueVow_SaaS_Administration_Service/docs/01-main/ECOSYSTEM_ADVISORY_GITIGNORE_SOURCE_LEAK.md (fix .gitignore: anchor/remove stray lib/ + logs/; secrets-scan; commit recovered source in reviewed batches by explicit path; verify clean-clone build). REPORT RESULT via memory.py remember category=bug title='TrueVow-Tenant_Billing-Service gitignore RESULT' content='FIXED n files | CLEAN | BLOCKED + reason; secrets found?'. NOTE: reporting.py agent-checkin is broken — report via memory.
   _by user - 2026-06-25 - tags: gitignore, todo, assigned_
 
-## architecture (49)
+## architecture (50)
 
 - **[10] TRACE full system architecture documented** - TRACE service (port 3036) runs as second pipeline stage (INTAKE -> TRACE -> SETTLE). Backend: Python FastAPI with JWT auth, Supabase Postgres+Storage, DeepSeek LLM. Portal: Next.js 14 at port 3031 with 6 TRACE pages, universal proxy route generating HS256 JWT. 28 API endpoints covering cases, provid...
   _by Admin - 2026-07-24_
@@ -271,6 +275,8 @@
   _by user - 2026-06-25_
 - **[9] FM Service Wired to Ecosystem** - TrueVow_Financial_Management_Service is registered in the agent ecosystem with 13 domain agents (orchestrator, code-agent, search-agent, gl-agent, ar-agent, ap-agent, payroll-agent, treasury-agent, intercompany-agent, reporting-agent, affiliates-agent, benjamin-agent, fintech-patterns). Auto-dispatc...
   _by user - 2026-06-25_
+- **[8] LiveKit Bridge Agent v2026-07-29 Deploy** - 6 bridge-level fixes deployed to LiveKit Cloud agent CA_UxWtcHqLEUTp vG934iLXXNzGN: (1) greeting allow_interruptions=False prevents mic-echo cut-off, (2) FAQ bypass injects system message blocking route_workflow when firm policy answers question, (3) _build_collected_data_text filters _seq/_spell/_v...
+  _by Admin - 2026-07-30_
 - **[8] tx_pipeline_rest.py REST API runner** - Created scripts/tx_pipeline_rest.py — full pipeline runner using Supabase REST API only. Handles Phase 3 (flatten attorneys), Phase 7a (community tagging), Phase 7b (firm segregation), Phase 8 (attorney cohort segregation). Uses raw HTTP and supabase client for inserts. Avoids psycopg2/asyncpg depen...
   _by Admin - 2026-07-27_
 - **[8] Softphone: Redis shared store + wired into 3 dashboards (Clerk-signed iframe)** - Two wirings completed. (1) REDIS SHARED STORE: new store.py with InMemoryStore + RedisStore behind one interface; get_store() picks Redis when REDIS_URL set, else in-memory, and degrades to in-memory if Redis unreachable at boot (never drops the phone line). registry.py + messages.py now delegate to...
@@ -371,8 +377,10 @@
 - **[10] zero hardcoded tunable values** - RULE: This is a multi-tenant platform. Never hardcode ANY value that may need adjustment per-tenant, per-firm, or per-environment. All tunables must live in one of: (1) tenant_config, (2) workflow JSON config, or (3) named module-level constants with clear documentation. Bare numbers, strings, or ID...
   _by Admin - 2026-07-15_
 
-## bug (17)
+## bug (18)
 
+- **[10] Engine Name Capture Corruption** - From 2026-07-29 test call transcript: contact_name corrupted through 5 different garbage values in a single 13-min call (call me Shaula → Me. Just Yeshua → Normal Conversation. Takes Place → K. P K). Root cause: _try_extract_intro_name and _try_correct_name over-fire on sentence fragments, treating ...
+  _by Admin - 2026-07-30_
 - **[10] TRACE 9 bugs fixed Jul 24 2026** - 1) extraction_confidence VARCHAR(10->32) overflow on DO_NOT_REQUEST value. 2) audit_log.action VARCHAR(100->255) overflow on long paths. 3) get_case no firm_id filter (SECURITY: firm isolation gap). 4) ChronologyExporter export_json/export_pdf called with wrong params in qa.py. 5) LOCAL_JWT_SECRET n...
   _by Admin - 2026-07-24_
 - **[10] Fly auto-stop blocked by setInterval loops — unref() required** - CRITICAL: Four server-side setInterval timers in Sales Ops were preventing Fly.io auto-stop from working. The fly.toml had auto_stop_machines = true and min_machines_running = 0, but the machines ran 24/7 because Node.js event loop never drained. Root cause: setInterval creates a timer reference tha...
@@ -408,7 +416,7 @@
 - **[1] FIXED: gitignore source-leak advisory** - RESOLVED July 1. All 6 affected services fixed.
   _by user - 2026-07-01_
 
-## context (112)
+## context (115)
 
 - **[10] SETTLE active session for resumption** - session_id=999bfecf-f156-478e-a3e5-2bab70304217 | task: Resuming nationwide scraping expansion | user will return to continue this exact session
   _by Admin - 2026-07-27_
@@ -418,6 +426,10 @@
   _by Admin - 2026-07-27_
 - **[8] Git Scan: 2026-07-21T17:26:34** - { "summary": { "timestamp": "2026-07-21T17:26:34.837888+00:00", "total": 14, "clean": 0, "dirty": 13, "missing": 1, "errors": 0, "stale_services": 14, "active_services": 0, "status_breakdown": { "HEALTHY": 0, "ACTIVE": 0, "STALE": 1, "NEGLECTED": 13, "BLOCKED": 0, "FAILING": 0, "INCIDENT": 0, "DIRTY...
   _by Admin - 2026-07-21_
+- **[7] [DONE] DONE: INTAKE: bridge-level fixes deployed to LiveKit Cloud | made 6 changes: greeting non-interruptible, F** - {"agent_id": "TrueVow_Tenant_Application_Service", "action": "done", "status": "DONE", "message": "INTAKE: bridge-level fixes deployed to LiveKit Cloud | made 6 changes: greeting non-interruptible, FAQ route_workflow bypass, collected_data filtering, summary node stripping, template sanitization, ti...
+  _by user - 2026-07-30_
+- **[7] [DONE] DONE: INTAKE: ontology integration complete — prospect lifecycle, authority boundaries, bridge instruction** - {"agent_id": "TrueVow_Tenant_Application_Service", "action": "done", "status": "DONE", "message": "INTAKE: ontology integration complete \u2014 prospect lifecycle, authority boundaries, bridge instructions aligned | outcome: _extract_name_from_phrase root fix deployed + 2 prompt violations fixed + A...
+  _by user - 2026-07-29_
 - **[7] [DONE] DONE: Sales Ops: Completed TX pipeline phases 3/5/6/7/8 via REST API (no direct DB) | Built tx_pipeline_re** - {"agent_id": "TrueVow_Sales_Ops_Service", "action": "done", "status": "DONE", "message": "Sales Ops: Completed TX pipeline phases 3/5/6/7/8 via REST API (no direct DB) | Built tx_pipeline_rest.py for flattening attorneys, community tagging, firm segregation, attorney segregation | Added TX to enrich...
   _by user - 2026-07-27_
 - **[7] [DONE] DONE: INTAKE: Validated all 16 Sales Ops Gap Analysis items for zero-touch customer onboarding | outcome:** - {"agent_id": "TrueVow_Tenant_Application_Service", "action": "done", "status": "DONE", "message": "INTAKE: Validated all 16 Sales Ops Gap Analysis items for zero-touch customer onboarding | outcome: 14/16 ready, 2 fixes committed (env vars + UUID callback), 2 non-blocker items remain | learned: CRM\...
@@ -512,6 +524,8 @@
   _by user - 2026-06-25_
 - **[6] Documentation Status: TrueVow_Documentation is Stale** - TrueVow_Documentation/ contains older documentation (Word docs, markdown exports) including TrueVow_PRD.md, Complete System Technical Documentation, Financial Management guides, and Billing Service updates. These are outdated - they reflect the old architecture with DRAFT naming, CONNECT active, and...
   _by user - 2026-06-25_
+- **[5] Dispatch: implement BP-00 contract normalization and BP-01 repository bootstrap for the RE** - Dispatched to skill='incremental-implementation' phase='build' personas=[] tool=
+  _by Admin - 2026-07-29_
 - **[5] Dispatch: Cross-service fix: Every service deployed on fly.io needs setInterval.unref() on** - Dispatched to skill='debugging-and-error-recovery' phase='verify' personas=[] tool=
   _by Admin - 2026-07-23_
 - **[5] Sania Dev Guide Rewritten** - Replaced SANIA_DEVELOPER_GUIDE.md with comprehensive but scannable system overview: 8-phase pipeline table, 5 factories with detailed user journeys, inter-factory handoff diagram, current pipeline state per-state, changes since June 5, quick reference.
