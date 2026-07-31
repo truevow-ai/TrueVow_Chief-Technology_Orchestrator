@@ -3,11 +3,13 @@
 > AUTO-GENERATED from memory.db by `python TrueVow_Shared_Orchestration/memory.py export`.
 > Do NOT edit by hand - changes are overwritten. Source of truth: `TrueVow_Shared_Codebase_Memory/memory.db`.
 
-- Generated: 2026-07-31T02:59:06.450600+00:00
-- Total memories: 249
+- Generated: 2026-07-31T03:01:26.327454+00:00
+- Total memories: 254
 
-## High-importance decisions (8+, routine noise excluded) - 119
+## High-importance decisions (8+, routine noise excluded) - 123
 
+- **[10][architecture] RETAINER Customer Portal v1 Complete** - Customer Portal now has 6 RETAINER workspaces with contract-mapped types from OpenAPI 3.1.0. 133/133 backend tests pass. INTAKE webhook plumbed. SaaS Admin activation path connected. WebhookSignature v1.0 HMAC implemented. Static gates: contract+TSC+ESLint+build all pass. Contract hash: f136f76318aa142a.
+  _by Admin - 2026-07-31 - tags: -_
 - **[10][architecture] RETAINER v1.0 Complete — Release Candidate** - RETAINER service is feature-complete through BP-09. 133 tests pass. 68 endpoints (59 firm + 9 client). 40 tables in Supabase retainer schema at migration 0008. INTAKE→RETAINER webhook impl (HMAC v1.0). Client API v1 frozen at 9 endpoints. Scope transition: ENGAGEMENT_ONLY → ENGAGEMENT_HISTORY (no MATTER_*). Cross-product spine: INTAKE→RETAINER→SaaS Admin verified. Portal architecture: Customer Portal (firm) + Client Portal (prospect) separated. Controlled pilot ready.
   _by Admin - 2026-07-31 - tags: -_
 - **[10][architecture] Shared Foundation Services v1.0.1** - Created app/shared/ with 9 cross-product services: TenantCore (identity/roles/isolation), AuthorityGate (AUTH-001 through AUTH-020, 27 registered actions), PolicyRegistry (jurisdiction profiles, firm policies, immutable config snapshots), ConsentLedger (append-only, 7-state lifecycle), DocumentService (versioned with SHA-256 hashes, signature evidence packages), CommunicationService (multi-channel, delivery evidence), WorkflowRuntime (deterministic state transitions, overdue escalation), AuditEventStore (ontology-compliant 18-field EventEnvelope v1.0.1), IntegrationHub (12 integration types). 25 shared DB tables in migration b2c3d4e5f6a7.
@@ -70,6 +72,8 @@
   _by Admin - 2026-07-24 - tags: -_
 - **[10][convention] zero hardcoded tunable values** - RULE: This is a multi-tenant platform. Never hardcode ANY value that may need adjustment per-tenant, per-firm, or per-environment. All tunables must live in one of: (1) tenant_config, (2) workflow JSON config, or (3) named module-level constants with clear documentation. Bare numbers, strings, or IDs in logic statements are FORBIDDEN. If you need a value that could change — threshold, timeout, limit, firm identifier, VAD setting, confidence score — expose it via config. Test by asking: 'Could a different law firm need this set differently?'
   _by Admin - 2026-07-15 - tags: -_
+- **[10][decision] Portal Scope Ownership** - RETAINER transitions ENGAGEMENT_ONLY to ENGAGEMENT_HISTORY on activation. Shared Platform adds ACTIVE_MATTER after matter.activated. RETAINER never grants MATTER_* scopes. Verified in domain/activation.py:159 and domain/portal.py:27.
+  _by Admin - 2026-07-31 - tags: -_
 - **[10][decision] SaaS Admin: 9 Contracts Frozen at v1.0.1** - EventEnvelope (18 fields, extensions prohibited at root), MatterActivatedPayload, ActivationEvidenceManifest (9 refs, SHA-256), WebhookSignature (HMAC-SHA256, constant-time, replay rejection), AuthorityClass (6 classes: SYS_ADMIN,FIRM_POLICY,STAFF_AUTH,ATTY_AUTH,CLIENT_AUTH,PROHIBITED), Ontology Registry, Event Catalog (141 canonical + 19 platform), Transition Contract, RETAINER Activation. Golden fixtures seeded. Breaking changes require new version. Never rename frozen fields in-place.
   _by Admin - 2026-07-31 - tags: -_
 - **[10][decision] TRACE Portal Access Ownership Model** - Portal access lifecycle: RETAINER local projection goes ENGAGEMENT_ONLY -> ENGAGEMENT_HISTORY (never MATTER_*). Shared Platform canonical grant adds ACTIVE_MATTER after matter.activated. TRACE stores local ClientAccessProjection as temporary convenience — will switch to Shared Platform API when available. Webhook auth uses X-TrueVow-Key-Id + X-TrueVow-Timestamp + X-TrueVow-Signature HMAC-SHA256 per frozen WebhookSignature v1.0 contract. Env var convention aligned with SaaS Admin: TRUEVOW_WEBHOOK_KEY_ID + TRUEVOW_WEBHOOK_SECRET.
@@ -156,6 +160,8 @@
   _by Admin - 2026-07-03 - tags: -_
 - **[9][decision] CONNECT Service Deleted** - TrueVow_Tenant_CONNECT_Service directory deleted. Removed from config.yaml services block and .gitignore. Was archived June 2026 — attorney referral network, no longer on TrueVow's agenda.
   _by user - 2026-07-01 - tags: -_
+- **[9][dependency] WebhookSignature v1.0** - HMAC signing implemented: lib/security/webhook-auth.ts (TS ref), app/auth/deps.py (Python verify). Signing string: timestamp:method:path:bodyHash. Replay protection: 5min window. Key rotation via TRUEVOW_WEBHOOK_SECONDARY_KEYS.
+  _by Admin - 2026-07-31 - tags: -_
 - **[9][todo] xai_cloud NEXT STEPS after C->B conversion** - DONE: C->B force_message conversion, VQM wiring, per-node VAD, missing test helpers (_VOICES/_DEFAULT_VOICE/_build_collected_data_text/_vad_for_node/_VAD_*), frontend rebuild w/ End Call+event log+report download. 40/40 tests pass. NOT YET DONE / NEXT: (1) USER LIVE TEST PENDING on http://127.0.0.1:3023/demo/xai_cloud_test.html — verify no more repetition loop, check transcripts/{sid}-report.json. (2) Add 3-retry-then-escalate guard in WorkflowEngine (industry doc HIGH priority; pushback loops forever currently). (3) 'You mean X?' repair pattern (Dialogflow §2). (4) Preamble/soft-timeout filler on slow LLM-routing nodes (1.5-3.2s classification nodes: conflict_check_prior_rep, opi_jurisdiction). (5) NOT committed yet — commit after successful live test. Ref: docs/VOICE_AI_INDUSTRY_ANALYSIS.md gap table, VOICE_AGENT_CHECKLIST.md §11.
   _by Admin - 2026-07-13 - tags: -_
 - **[8][architecture] TRACE Phase 2A Schema Migration Applied** - Migration 0017 applied to Supabase Postgres — 31 new tables across 9 layers: global reference (jurisdiction_profiles), tenant-scoped (business_events, policy_records, consent_records), source-linked evidence (source_locations, evidence_facts, fact_versions, contradiction_pairs, missing_evidence_signals), matter structure (incidents, claims, damages), medical (injuries, symptoms, diagnoses, treatment_episodes), workflow (issues, demand_drafts, demand_packages, readiness_assessments, record_completeness_assessments), evidence integrity (chain_of_custody_events, witnesses, witness_statements), insurance/coverage/liability, and client portal (trace_client_access_projections, jurisdiction_activations). Alembic env.py updated with search_path=trace. Ownership model corrected: ClientAccessProjection is TRACE-local temporary mirror of Shared Platform canonical grant. RETAINER never grants MATTER_* scopes.
@@ -208,6 +214,8 @@
   _by Admin - 2026-07-08 - tags: -_
 - **[8][bug] gitignore source-leak ECOSYSTEM AUDIT results (June 25) — which repos still affected** - Audited all sibling git repos for the gitignore source-leak (advisory 64bc43bf). NONE have run the fix yet (advisory just issued). CONFIRMED UNFIXED SOURCE LEAKS (real lib/ source hidden from git): TrueVow_Financial_Management_Service (frontend/lib + frontend/__tests__/lib), TrueVow_Tenant_Application_Service (app/portal/lib, dograh server ui/src/lib, scripts/lib), TrueVow-Tenant_Billing-Service (ui/lib; ALSO its .gitignore has an embedded NULL/control byte — corrupted). LATENT (dangerous unanchored lib/ rule present but no active source leak yet): TrueVow_Internal_Ops_Service, TrueVow_Tenant_SETTLE-Service, TrueVow_Tenant_LEVERAGE_Service. NOT GIT REPOS AT ALL (no version control — separate severe issue): TrueVow_Dialogflow_Intake_Service, TrueVow_Platform_Analytics_Service, TrueVow_Tenant_VERIFY_Service, TrueVow_TWIML_SoftPhone_App. CLEAN: Website, Customer_Success_CORE, First_Line_Support, Sales_Ops, Tenant_CONNECT, Customer_Portal, cartesia_test. SaaS_Admin already fixed. Each affected repo agent: run docs/01-main/ECOSYSTEM_ADVISORY_GITIGNORE_SOURCE_LEAK.md (in SaaS Admin).
   _by user - 2026-06-25 - tags: gitignore, audit, ecosystem, cross-service_
+- **[8][convention] RETAINER OpenAPI Contract Pipeline** - npm run generate:retainer-api stores hash of lib/api/retainer/openapi.yaml. npm run check:retainer-contract validates CI drift. Types in lib/api/retainer/generated/schema.ts must remain 1:1 with Pydantic schemas.
+  _by Admin - 2026-07-31 - tags: -_
 - **[8][convention] Webhook Auth Migration — HMAC v1.0 + Legacy Bearer** - Webhook endpoint accepts both HMAC (X-TrueVow-Key-Id + X-TrueVow-Timestamp + X-TrueVow-Signature) and legacy Bearer. HMAC uses SHA-256 body hash + HMAC-SHA256 signing string (timestamp:method:path:bodyHash), 5-min replay window, constant-time compare. Legacy logs deprecation warning. Key resolution: tv-primary → INTAKE_WEBHOOK_SECRET.
   _by Admin - 2026-07-31 - tags: -_
 - **[8][convention] Golden Fixture Cross-Repository Testing** - Created app/shared/contracts.py with frozen contract versions and deterministic golden fixture (make_golden_envelope, make_golden_fixture_json, compute_golden_hmac). Every TrueVow product must deserialize the same 18-field EventEnvelope and compute the same HMAC over the exact raw fixture. Tests at tests/test_golden_fixtures.py validate envelope serialization, roundtrip deserialization, HMAC determinism, evidence manifest completeness (9 refs), and jurisdiction separation (global vs tenant).
@@ -247,8 +255,10 @@
 - **[8][todo] FIX gitignore source-leak: TrueVow-Tenant_Billing-Service** - ASSIGNED to the TrueVow-Tenant_Billing-Service agent. Real lib/ source is currently hidden from git (confirmed). Run the playbook: TrueVow_SaaS_Administration_Service/docs/01-main/ECOSYSTEM_ADVISORY_GITIGNORE_SOURCE_LEAK.md (fix .gitignore: anchor/remove stray lib/ + logs/; secrets-scan; commit recovered source in reviewed batches by explicit path; verify clean-clone build). REPORT RESULT via memory.py remember category=bug title='TrueVow-Tenant_Billing-Service gitignore RESULT' content='FIXED n files | CLEAN | BLOCKED + reason; secrets found?'. NOTE: reporting.py agent-checkin is broken — report via memory.
   _by user - 2026-06-25 - tags: gitignore, todo, assigned_
 
-## architecture (60)
+## architecture (61)
 
+- **[10] RETAINER Customer Portal v1 Complete** - Customer Portal now has 6 RETAINER workspaces with contract-mapped types from OpenAPI 3.1.0. 133/133 backend tests pass. INTAKE webhook plumbed. SaaS Admin activation path connected. WebhookSignature v1.0 HMAC implemented. Static gates: contract+TSC+ESLint+build all pass. Contract hash: f136f76318aa...
+  _by Admin - 2026-07-31_
 - **[10] RETAINER v1.0 Complete — Release Candidate** - RETAINER service is feature-complete through BP-09. 133 tests pass. 68 endpoints (59 firm + 9 client). 40 tables in Supabase retainer schema at migration 0008. INTAKE→RETAINER webhook impl (HMAC v1.0). Client API v1 frozen at 9 endpoints. Scope transition: ENGAGEMENT_ONLY → ENGAGEMENT_HISTORY (no MA...
   _by Admin - 2026-07-31_
 - **[10] Shared Foundation Services v1.0.1** - Created app/shared/ with 9 cross-product services: TenantCore (identity/roles/isolation), AuthorityGate (AUTH-001 through AUTH-020, 27 registered actions), PolicyRegistry (jurisdiction profiles, firm policies, immutable config snapshots), ConsentLedger (append-only, 7-state lifecycle), DocumentServi...
@@ -389,8 +399,10 @@
 - **[6] xai_cloud bridge test suite** - Created tests/test_xai_cloud_bridge.py (34 tests) for XaiCloudBridge. Mirrors test_xai_bridge.py but adapts for cloud bridge: dual registration (xai_cloud + xai_cloud_voice_agent), default voice rex (male-only), end_session returns {bridge,session_id,status} without had_audio, double-start early-ret...
   _by Admin - 2026-07-08_
 
-## decision (27)
+## decision (28)
 
+- **[10] Portal Scope Ownership** - RETAINER transitions ENGAGEMENT_ONLY to ENGAGEMENT_HISTORY on activation. Shared Platform adds ACTIVE_MATTER after matter.activated. RETAINER never grants MATTER_* scopes. Verified in domain/activation.py:159 and domain/portal.py:27.
+  _by Admin - 2026-07-31_
 - **[10] SaaS Admin: 9 Contracts Frozen at v1.0.1** - EventEnvelope (18 fields, extensions prohibited at root), MatterActivatedPayload, ActivationEvidenceManifest (9 refs, SHA-256), WebhookSignature (HMAC-SHA256, constant-time, replay rejection), AuthorityClass (6 classes: SYS_ADMIN,FIRM_POLICY,STAFF_AUTH,ATTY_AUTH,CLIENT_AUTH,PROHIBITED), Ontology Reg...
   _by Admin - 2026-07-31_
 - **[10] TRACE Portal Access Ownership Model** - Portal access lifecycle: RETAINER local projection goes ENGAGEMENT_ONLY -> ENGAGEMENT_HISTORY (never MATTER_*). Shared Platform canonical grant adds ACTIVE_MATTER after matter.activated. TRACE stores local ClientAccessProjection as temporary convenience — will switch to Shared Platform API when avai...
@@ -446,10 +458,17 @@
 - **[4] All 18 Active Services Wired to Ecosystem + 1 Archived** - 18 of 18 active TrueVow services wired with AGENTS.md + ecosystem integration. 1 archived: CONNECT (decommissioned June 2026, no longer on TrueVow agenda). Every agent opening any active service reads ecosystem preamble: check in with CTO orchestrator, dispatch tasks, remember decisions, report stat...
   _by user - 2026-06-25_
 
-## convention (3)
+## dependency (1)
+
+- **[9] WebhookSignature v1.0** - HMAC signing implemented: lib/security/webhook-auth.ts (TS ref), app/auth/deps.py (Python verify). Signing string: timestamp:method:path:bodyHash. Replay protection: 5min window. Key rotation via TRUEVOW_WEBHOOK_SECONDARY_KEYS.
+  _by Admin - 2026-07-31_
+
+## convention (4)
 
 - **[10] zero hardcoded tunable values** - RULE: This is a multi-tenant platform. Never hardcode ANY value that may need adjustment per-tenant, per-firm, or per-environment. All tunables must live in one of: (1) tenant_config, (2) workflow JSON config, or (3) named module-level constants with clear documentation. Bare numbers, strings, or ID...
   _by Admin - 2026-07-15_
+- **[8] RETAINER OpenAPI Contract Pipeline** - npm run generate:retainer-api stores hash of lib/api/retainer/openapi.yaml. npm run check:retainer-contract validates CI drift. Types in lib/api/retainer/generated/schema.ts must remain 1:1 with Pydantic schemas.
+  _by Admin - 2026-07-31_
 - **[8] Webhook Auth Migration — HMAC v1.0 + Legacy Bearer** - Webhook endpoint accepts both HMAC (X-TrueVow-Key-Id + X-TrueVow-Timestamp + X-TrueVow-Signature) and legacy Bearer. HMAC uses SHA-256 body hash + HMAC-SHA256 signing string (timestamp:method:path:bodyHash), 5-min replay window, constant-time compare. Legacy logs deprecation warning. Key resolution:...
   _by Admin - 2026-07-31_
 - **[8] Golden Fixture Cross-Repository Testing** - Created app/shared/contracts.py with frozen contract versions and deterministic golden fixture (make_golden_envelope, make_golden_fixture_json, compute_golden_hmac). Every TrueVow product must deserialize the same 18-field EventEnvelope and compute the same HMAC over the exact raw fixture. Tests at ...
@@ -494,7 +513,7 @@
 - **[1] FIXED: gitignore source-leak advisory** - RESOLVED July 1. All 6 affected services fixed.
   _by user - 2026-07-01_
 
-## context (121)
+## context (122)
 
 - **[10] TRACE Contract Normalization Complete** - Four contract corrections applied: (1) EventEnvelope frozen at v1.0.1 with 18 required fields, (2) matter.activated payload normalized to 9 canonical evidence references, (3) webhook auth upgraded from shared-secret header to HMAC-SHA256 signature, (4) global vs tenant data separation documented. Go...
   _by Admin - 2026-07-31_
@@ -506,6 +525,8 @@
   _by Admin - 2026-07-27_
 - **[8] Git Scan: 2026-07-21T17:26:34** - { "summary": { "timestamp": "2026-07-21T17:26:34.837888+00:00", "total": 14, "clean": 0, "dirty": 13, "missing": 1, "errors": 0, "stale_services": 14, "active_services": 0, "status_breakdown": { "HEALTHY": 0, "ACTIVE": 0, "STALE": 1, "NEGLECTED": 13, "BLOCKED": 0, "FAILING": 0, "INCIDENT": 0, "DIRTY...
   _by Admin - 2026-07-21_
+- **[7] [DONE] DONE: Portal: RETAINER Customer Portal v1 complete | 6 workspaces with contract-types, 133/133 backend tes** - {"agent_id": "Truevow_Tenant_Customer_Portal_Service", "action": "done", "status": "DONE", "message": "Portal: RETAINER Customer Portal v1 complete | 6 workspaces with contract-types, 133/133 backend tests pass, INTAKE webhook plumbed, SaaS Admin activation connected, WebhookSignature v1.0 HMAC, sta...
+  _by user - 2026-07-31_
 - **[7] [DONE] DONE: RETAINER: v1.0 release candidate complete | BP-01 through BP-09 built and tested | 133 tests passing** - {"agent_id": "TrueVow_Tenant_RETAINER_Service", "action": "done", "status": "DONE", "message": "RETAINER: v1.0 release candidate complete | BP-01 through BP-09 built and tested | 133 tests passing | 68 endpoints (59 firm + 9 client API v1) | 40 tables in Supabase | INTAKE\u2192RETAINER HMAC webhook ...
   _by user - 2026-07-31_
 - **[7] [DONE] DONE: SETTLE: Settlement domain models (ENT-081 through ENT-106), service layer (8 modules), 30 REST endpo** - {"agent_id": "TrueVow_Tenant_SETTLE-Service", "action": "done", "status": "DONE", "message": "SETTLE: Settlement domain models (ENT-081 through ENT-106), service layer (8 modules), 30 REST endpoints, shared foundation (9 cross-product services), 4 contract corrections (EventEnvelope v1.0.1, 9 eviden...
