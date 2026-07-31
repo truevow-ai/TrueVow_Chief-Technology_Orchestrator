@@ -71,4 +71,4 @@ CANONICAL_EVENTS: set[EventType] = {
     EventType.ENGAGEMENT_EXPIRED,
 }
 
-EVENT_SCHEMA_VERSIONS: dict[EventType, str] = dict.fromkeys(EventType, "1.0.0")
+EVENT_SCHEMA_VERSIONS: dict[EventType, str] = dict.fromkeys(EventType, "1.0.1")

@@ -16,6 +16,7 @@ from logging.config import fileConfig
 
 from alembic import context
 from dotenv import load_dotenv
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.models import Base
@@ -69,7 +70,12 @@ def _do_run_migrations(connection) -> None:
 
 async def run_migrations_online() -> None:
     engine = create_async_engine(
-        _db_url(), pool_pre_ping=True, connect_args={"statement_cache_size": 0}
+        _db_url(),
+        pool_pre_ping=True,
+        connect_args={
+            "statement_cache_size": 0,
+            "server_settings": {"search_path": "retainer"},
+        },
     )
     async with engine.connect() as connection:
         await connection.run_sync(_do_run_migrations)

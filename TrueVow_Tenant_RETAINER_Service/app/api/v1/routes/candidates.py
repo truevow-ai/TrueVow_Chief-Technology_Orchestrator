@@ -11,12 +11,13 @@ from retainer_contracts.states import EngagementState
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.deps import AuthContext, get_current_context
+from app.auth.deps import AuthContext, get_current_context, get_webhook_context
 from app.core.database import get_db
 from app.domain.candidate import (
     approve_representation,
     assign_responsible_attorney,
     decline_representation,
+    defer_representation,
     request_missing_information,
     start_candidate_review,
 )
@@ -58,6 +59,46 @@ async def import_candidate_endpoint(
     db: AsyncSession = Depends(get_db),
     ctx: AuthContext = Depends(get_current_context),
 ):
+    from app.domain.candidate import import_candidate
+
+    try:
+        workflow_id, _ = await import_candidate(
+            db,
+            tenant_id=payload.tenant_id,
+            matter_candidate_id=payload.matter_candidate_id,
+            candidate_version=payload.candidate_version,
+            source_event_id=payload.source_event_ids[0],
+            submitted_by_actor_id=payload.submitted_by_actor_id,
+            source_event_ids=payload.source_event_ids,
+        )
+        await db.commit()
+        return CandidateImportResponse(
+            workflow_id=workflow_id,
+            candidate_id=payload.matter_candidate_id,
+            state=EngagementState.NOT_STARTED,
+            candidate_version=payload.candidate_version,
+        )
+    except ValueError as e:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail=str(e)) from None
+
+
+@router.post(
+    "/webhooks/candidate-submitted",
+    status_code=202,
+    response_model=CandidateImportResponse,
+    summary="INTAKE → RETAINER webhook for candidate.submitted_for_representation_review",
+)
+async def candidate_submitted_webhook(
+    payload: CandidateHandoffRequest,
+    db: AsyncSession = Depends(get_db),
+    ctx: AuthContext = Depends(get_webhook_context),
+):
+    """Accept a candidate submission from INTAKE via service-to-service webhook.
+
+    Authenticated via API key (X-API-Key or Bearer token).
+    Tenant context from X-Tenant-Id header.
+    """
     from app.domain.candidate import import_candidate
 
     try:
@@ -320,6 +361,45 @@ async def decline_representation_endpoint(
     except ValueError as e:
         await db.rollback()
         raise HTTPException(status_code=409, detail=str(e)) from None
+
+
+@router.post(
+    "/candidates/{candidate_id}/defer",
+    status_code=201,
+    response_model=RepresentationDecisionResponse,
+)
+async def defer_representation_endpoint(
+    candidate_id: uuid.UUID,
+    payload: RepresentationDecisionRequest,
+    ctx: AuthContext = Depends(get_current_context),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        decision_id = await defer_representation(
+            db,
+            candidate_id=candidate_id,
+            tenant_id=uuid.UUID(ctx.firm_id),
+            attorney_actor_id=ctx.user_id,
+            authority_record_id=payload.authority_record_id,
+            scope_json=payload.scope_json,
+            policy_snapshot_id=payload.policy_snapshot_id,
+            actor_role=ctx.role,
+        )
+        await db.commit()
+        decision = await db.get(RepresentationDecision, decision_id)
+        return RepresentationDecisionResponse(
+            decision_id=decision_id,
+            outcome=decision.outcome,
+            decided_at=decision.decided_at,
+        )
+    except ValueError as e:
+        await db.rollback()
+        msg = str(e)
+        if "AUTHORITY_MISSING" in msg or "authority" in msg.lower():
+            raise HTTPException(status_code=403, detail=msg) from None
+        if "not found" in msg.lower():
+            raise HTTPException(status_code=404, detail=msg) from None
+        raise HTTPException(status_code=409, detail=msg) from None
 
 
 @router.get("/candidates/{candidate_id}/audit", response_model=AuditResponse)

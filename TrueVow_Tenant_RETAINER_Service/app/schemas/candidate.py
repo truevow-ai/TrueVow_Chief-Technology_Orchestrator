@@ -95,7 +95,7 @@ class RequestInformationResponse(BaseModel):
 
 
 class RepresentationDecisionRequest(BaseModel):
-    outcome: Annotated[str, Field(pattern="^(APPROVED|DECLINED)$")]
+    outcome: Annotated[str, Field(pattern="^(APPROVED|DECLINED|DEFERRED)$")]
     scope_json: dict = Field(default_factory=dict)
     authority_record_id: uuid.UUID
     policy_snapshot_id: uuid.UUID | None = None

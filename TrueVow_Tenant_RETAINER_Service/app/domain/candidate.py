@@ -74,7 +74,7 @@ async def import_candidate(
             event_id=inbox_event_id,
             tenant_id=tenant_id,
             event_type=EventType.CANDIDATE_SUBMITTED_FOR_REPRESENTATION_REVIEW,
-            schema_version="1.0.0",
+            schema_version="1.0.1",
             payload_hash=payload_hash,
             processed_at=now,
             result="duplicate",
@@ -94,7 +94,7 @@ async def import_candidate(
             event_id=inbox_event_id,
             tenant_id=tenant_id,
             event_type=EventType.CANDIDATE_SUBMITTED_FOR_REPRESENTATION_REVIEW,
-            schema_version="1.0.0",
+            schema_version="1.0.1",
             payload_hash=payload_hash,
             processed_at=now,
             result="version_conflict",
@@ -118,7 +118,7 @@ async def import_candidate(
         event_id=inbox_event_id,
         tenant_id=tenant_id,
         event_type=EventType.CANDIDATE_SUBMITTED_FOR_REPRESENTATION_REVIEW,
-        schema_version="1.0.0",
+        schema_version="1.0.1",
         payload_hash=payload_hash,
         processed_at=now,
         result="created",
@@ -130,7 +130,7 @@ async def import_candidate(
         tenant_id=tenant_id,
         aggregate_id=workflow_id,
         event_type=EventType.ENGAGEMENT_WORKFLOW_STARTED,
-        schema_version="1.0.0",
+        schema_version="1.0.1",
         payload_json={
             "workflow_id": str(workflow_id),
             "matter_candidate_id": str(matter_candidate_id),
@@ -205,18 +205,6 @@ async def start_candidate_review(
     authority, allowed = _evaluate_authority(
         AuthorityAction.REPRESENTATION_PREPARE, actor_role
     )
-    await _record_audit(
-        db,
-        tenant_id=tenant_id,
-        workflow_id=uuid.UUID("00000000-0000-0000-0000-000000000000"),
-        event_type="authority_check",
-        actor_id=actor_id,
-        actor_role=actor_role,
-        authority_class=authority.value,
-        action="start_candidate_review",
-        result="denied" if not allowed else "allowed",
-    )
-
     if not allowed:
         raise ValueError(ErrorCode.RET_AUTHORITY_MISSING)
 
@@ -229,6 +217,18 @@ async def start_candidate_review(
     workflow = result.scalars().first()
     if workflow is None:
         raise ValueError("Candidate not found")
+
+    await _record_audit(
+        db,
+        tenant_id=tenant_id,
+        workflow_id=workflow.id,
+        event_type="authority_check",
+        actor_id=actor_id,
+        actor_role=actor_role,
+        authority_class=authority.value,
+        action="start_candidate_review",
+        result="allowed",
+    )
 
     existing_review = (
         await db.execute(
@@ -273,7 +273,7 @@ async def start_candidate_review(
         tenant_id=tenant_id,
         aggregate_id=workflow.id,
         event_type=EventType.ENGAGEMENT_WORKFLOW_STARTED,
-        schema_version="1.0.0",
+        schema_version="1.0.1",
         payload_json={
             "workflow_id": str(workflow.id),
             "action": "review_started",
@@ -332,7 +332,7 @@ async def assign_responsible_attorney(
         tenant_id=tenant_id,
         aggregate_id=workflow.id,
         event_type=EventType.ENGAGEMENT_WORKFLOW_STARTED,
-        schema_version="1.0.0",
+        schema_version="1.0.1",
         payload_json={
             "workflow_id": str(workflow.id),
             "action": "attorney_assigned",
@@ -403,17 +403,21 @@ async def approve_representation(
         raise ValueError(ErrorCode.RET_AUTHORITY_MISSING)
 
     result = await db.execute(
-        select(RetainerWorkflow).where(
+        select(RetainerWorkflow)
+        .where(
             RetainerWorkflow.tenant_id == tenant_id,
             RetainerWorkflow.matter_candidate_id == candidate_id,
-        ).order_by(RetainerWorkflow.candidate_version.desc())
+        )
+        .order_by(RetainerWorkflow.candidate_version.desc())
+        .with_for_update(),
     )
     workflow = result.scalars().first()
     if workflow is None:
         raise ValueError("Candidate not found")
-    if workflow.state != EngagementState.NOT_STARTED:
+    current_state = workflow.state
+    if current_state != EngagementState.NOT_STARTED:
         raise ValueError(
-            f"Decision not allowed from state {workflow.state}"
+            f"Decision not allowed from state {current_state}"
         )
 
     await _record_audit(
@@ -473,11 +477,114 @@ async def approve_representation(
         tenant_id=tenant_id,
         aggregate_id=workflow.id,
         event_type=EventType.REPRESENTATION_APPROVED_BY_ATTORNEY,
-        schema_version="1.0.0",
+        schema_version="1.0.1",
         payload_json={
             "workflow_id": str(workflow.id),
             "decision_id": str(decision_id),
             "outcome": "APPROVED",
+            "attorney_actor_id": attorney_actor_id,
+            "candidate_version": workflow.candidate_version,
+            "policy_snapshot_id": str(policy_snapshot_id) if policy_snapshot_id else None,
+        },
+    )
+    db.add(outbox_event)
+
+    return decision_id
+
+
+async def defer_representation(
+    db: AsyncSession,
+    *,
+    candidate_id: uuid.UUID,
+    tenant_id: uuid.UUID,
+    attorney_actor_id: str,
+    authority_record_id: uuid.UUID,
+    scope_json: dict,
+    policy_snapshot_id: uuid.UUID | None = None,
+    actor_role: str | None = None,
+) -> uuid.UUID:
+    authority, allowed = _evaluate_authority(
+        AuthorityAction.REPRESENTATION_DECIDE, actor_role
+    )
+    if not allowed:
+        raise ValueError(ErrorCode.RET_AUTHORITY_MISSING)
+
+    result = await db.execute(
+        select(RetainerWorkflow)
+        .where(
+            RetainerWorkflow.tenant_id == tenant_id,
+            RetainerWorkflow.matter_candidate_id == candidate_id,
+        )
+        .order_by(RetainerWorkflow.candidate_version.desc())
+        .with_for_update(),
+    )
+    workflow = result.scalars().first()
+    if workflow is None:
+        raise ValueError("Candidate not found")
+    current_state = workflow.state
+    if current_state != EngagementState.NOT_STARTED:
+        raise ValueError(
+            f"Decision not allowed from state {current_state}"
+        )
+
+    await _record_audit(
+        db,
+        tenant_id=tenant_id,
+        workflow_id=workflow.id,
+        event_type="defer_representation",
+        actor_id=attorney_actor_id,
+        actor_role=actor_role,
+        authority_class=authority.value,
+        action="defer_representation",
+        result="allowed",
+    )
+
+    now = datetime.now(UTC)
+    decision_id = uuid.uuid4()
+    decision = RepresentationDecision(
+        id=decision_id,
+        tenant_id=tenant_id,
+        matter_candidate_id=candidate_id,
+        outcome="DEFERRED",
+        scope_json=scope_json,
+        attorney_actor_id=attorney_actor_id,
+        authority_record_id=authority_record_id,
+        decided_at=now,
+    )
+    db.add(decision)
+
+    if policy_snapshot_id:
+        snapshot = ConfigurationResolutionSnapshot(
+            id=uuid.uuid4(),
+            tenant_id=tenant_id,
+            workflow_id=workflow.id,
+            resolution_type="policy_snapshot",
+            policy_version_id=policy_snapshot_id,
+        )
+        db.add(snapshot)
+
+    auth_eval = AuthorityEvaluation(
+        id=uuid.uuid4(),
+        tenant_id=tenant_id,
+        workflow_id=workflow.id,
+        action="defer_representation",
+        actor_id=attorney_actor_id,
+        authority_class=AuthorityClass.ATTY_AUTH.value,
+        result="DEFERRED",
+        policy_snapshot_id=policy_snapshot_id,
+    )
+    db.add(auth_eval)
+
+    outbox_event = RetainerOutboxEvent(
+        event_id=uuid.uuid4(),
+        tenant_id=tenant_id,
+        aggregate_id=workflow.id,
+        event_type=EventType.REPRESENTATION_APPROVED_BY_ATTORNEY,
+        schema_version="1.0.1",
+        payload_json={
+            "workflow_id": str(workflow.id),
+            "decision_id": str(decision_id),
+            "outcome": "DEFERRED",
             "attorney_actor_id": attorney_actor_id,
             "candidate_version": workflow.candidate_version,
             "policy_snapshot_id": str(policy_snapshot_id) if policy_snapshot_id else None,
@@ -504,17 +611,21 @@ async def decline_representation(
         raise ValueError(ErrorCode.RET_AUTHORITY_MISSING)
 
     result = await db.execute(
-        select(RetainerWorkflow).where(
+        select(RetainerWorkflow)
+        .where(
             RetainerWorkflow.tenant_id == tenant_id,
             RetainerWorkflow.matter_candidate_id == candidate_id,
-        ).order_by(RetainerWorkflow.candidate_version.desc())
+        )
+        .order_by(RetainerWorkflow.candidate_version.desc())
+        .with_for_update(),
     )
     workflow = result.scalars().first()
     if workflow is None:
         raise ValueError("Candidate not found")
-    if workflow.state != EngagementState.NOT_STARTED:
+    current_state = workflow.state
+    if current_state != EngagementState.NOT_STARTED:
         raise ValueError(
-            f"Decision not allowed from state {workflow.state}"
+            f"Decision not allowed from state {current_state}"
         )
 
     await _record_audit(
@@ -562,7 +673,7 @@ async def decline_representation(
         tenant_id=tenant_id,
         aggregate_id=workflow.id,
         event_type=EventType.REPRESENTATION_DECLINED_BY_ATTORNEY,
-        schema_version="1.0.0",
+        schema_version="1.0.1",
         payload_json={
             "workflow_id": str(workflow.id),
             "decision_id": str(decision_id),

@@ -55,3 +55,8 @@ async def get_db(
                 text(f"SET LOCAL app.current_user_role = '{ctx.role or ''}'")
             )
         yield session
+
+
+async def get_db_public() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
+        yield session

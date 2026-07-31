@@ -86,7 +86,7 @@ async def record_representation_decision(
         tenant_id=tenant_id,
         aggregate_id=workflow_id,
         event_type=event_type,
-        schema_version="1.0.0",
+        schema_version="1.0.1",
         payload_json={
             "workflow_id": str(workflow_id),
             "decision_id": str(decision_id),

@@ -5,124 +5,124 @@ events:
 - event_type: conflict.search_started
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: conflict.candidate_detected
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: conflict.review_requested
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: conflict.cleared_by_attorney
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: conflict.hold_applied
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: representation.approved_by_attorney
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: representation.declined_by_attorney
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: engagement.workflow_started
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: template.resolved
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: package.generated
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: package.delivery_authorized
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: esign.consent_granted
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: package.delivered
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: engagement.question_received
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: engagement.question_escalated
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: signature.applied
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: signature.invalidated
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: package.fully_executed
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: completed_copy.delivered
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: matter.activation_authorized
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: matter.activated
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: engagement.expired
   owner: RETAINER
   canonical: true
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: candidate.submitted_for_representation_review
   owner: INTAKE
   canonical: false
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: engagement.client_review_started
   owner: RETAINER
   canonical: false
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: signature.requested
   owner: RETAINER
   canonical: false
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: engagement.declined_by_client
   owner: RETAINER
   canonical: false
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: engagement.authorization_withdrawn
   owner: RETAINER
   canonical: false
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: engagement.delivery_failed
   owner: RETAINER
   canonical: false
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: engagement.reminder_sent
   owner: RETAINER
   canonical: false
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: engagement.reminder_suppressed
   owner: RETAINER
   canonical: false
-  schema_version: 1.0.0
+  schema_version: 1.0.1
 - event_type: engagement.reconciliation_required
   owner: RETAINER
   canonical: false
-  schema_version: 1.0.0
+  schema_version: 1.0.1

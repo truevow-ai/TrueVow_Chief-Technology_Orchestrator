@@ -115,6 +115,85 @@ class ConflictReview(Base):
     decided_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
+class ConflictSearchParty(Base):
+    __tablename__ = "conflict_search_parties"
+    __table_args__ = (
+        UniqueConstraint("search_id", "canonical_ref"),
+    )
+
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    search_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("conflict_searches.id"), nullable=False
+    )
+    party_type: Mapped[str] = mapped_column(String, nullable=False)
+    canonical_ref: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False)
+    legal_name: Mapped[str] = mapped_column(Text, nullable=False)
+    prior_names: Mapped[dict] = mapped_column(JSON, nullable=False, default=list)
+    aliases: Mapped[dict] = mapped_column(JSON, nullable=False, default=list)
+    normalized_name: Mapped[str | None] = mapped_column(Text, nullable=True)
+    date_of_birth: Mapped[str | None] = mapped_column(Text, nullable=True)
+    organization_identifiers: Mapped[dict] = mapped_column(JSON, nullable=False, default=list)
+    relationship_to_candidate: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source: Mapped[str | None] = mapped_column(Text, nullable=True)
+    confidence: Mapped[str | None] = mapped_column(String, nullable=True)
+    candidate_version: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class ConflictSearchSource(Base):
+    __tablename__ = "conflict_search_sources"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    search_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("conflict_searches.id"), nullable=False
+    )
+    source_type: Mapped[str] = mapped_column(String, nullable=False)
+    source_identifier: Mapped[str] = mapped_column(Text, nullable=False)
+    algorithm_version: Mapped[str] = mapped_column(Text, nullable=False)
+    coverage_data: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+
+
+class ConflictHold(Base):
+    __tablename__ = "conflict_holds"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    search_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("conflict_searches.id"), nullable=False
+    )
+    attorney_actor_id: Mapped[str] = mapped_column(Text, nullable=False)
+    authority_record_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    affected_candidate_id: Mapped[_uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("conflict_candidates.id"), nullable=True
+    )
+    supporting_evidence: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    required_followup: Mapped[str | None] = mapped_column(Text, nullable=True)
+    review_owner: Mapped[str | None] = mapped_column(Text, nullable=True)
+    policy_snapshot_id: Mapped[_uuid.UUID | None] = mapped_column(Uuid, nullable=True)
+    held_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    released_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class ConflictEvidenceSnapshot(Base):
+    __tablename__ = "conflict_evidence_snapshots"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    search_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("conflict_searches.id"), nullable=False
+    )
+    snapshot_type: Mapped[str] = mapped_column(String, nullable=False)
+    party_set_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    source_set_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    candidate_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    policy_snapshot_id: Mapped[_uuid.UUID | None] = mapped_column(Uuid, nullable=True)
+    snapshot_data: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    snapped_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class TemplateResolution(Base):
     __tablename__ = "template_resolutions"
     __table_args__ = (
@@ -156,6 +235,39 @@ class EngagementPackage(Base):
     locked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class TemplateMergeField(Base):
+    __tablename__ = "template_merge_fields"
+    __table_args__ = (
+        UniqueConstraint("template_resolution_id", "field_name"),
+    )
+
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    template_resolution_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("template_resolutions.id"), nullable=False
+    )
+    field_name: Mapped[str] = mapped_column(Text, nullable=False)
+    field_value: Mapped[str] = mapped_column(Text, nullable=False)
+    source: Mapped[str] = mapped_column(String, nullable=False)
+    validated: Mapped[bool] = mapped_column(default=True)
+
+
+class PackagePreflightResult(Base):
+    __tablename__ = "package_preflight_results"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    package_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("engagement_packages.id"), nullable=False
+    )
+    control_id: Mapped[str] = mapped_column(Text, nullable=False)
+    control_name: Mapped[str] = mapped_column(Text, nullable=False)
+    passed: Mapped[bool] = mapped_column(default=False)
+    detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    evaluated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class PackageDocument(Base):
     __tablename__ = "package_documents"
     tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, primary_key=True)
@@ -172,6 +284,87 @@ class PackageDocument(Base):
     required: Mapped[bool] = mapped_column(default=True)
     sequence: Mapped[int] = mapped_column(Integer, nullable=False)
     document_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+class DeliveryAuthorization(Base):
+    __tablename__ = "delivery_authorizations"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    package_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("engagement_packages.id"), nullable=False
+    )
+    workflow_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("retainer_workflows.id"), nullable=False
+    )
+    authorized_by_actor_id: Mapped[str] = mapped_column(Text, nullable=False)
+    authority_record_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False)
+    channel: Mapped[str] = mapped_column(String, nullable=False, default="portal")
+    recipient_verified: Mapped[bool] = mapped_column(default=False)
+    authorized_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class ClientPortalAccess(Base):
+    __tablename__ = "client_portal_access"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    workflow_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("retainer_workflows.id"), nullable=False
+    )
+    access_token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    package_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("engagement_packages.id"), nullable=False
+    )
+    prospect_party_role_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False)
+    state: Mapped[str] = mapped_column(String, nullable=False, default="PENDING_INVITATION")
+    scopes: Mapped[dict] = mapped_column(JSON, nullable=False, default=list)
+    canonical_access_grant_id: Mapped[_uuid.UUID | None] = mapped_column(Uuid, nullable=True)
+    source_event_id: Mapped[_uuid.UUID | None] = mapped_column(Uuid, nullable=True)
+    last_synchronized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    issued_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    first_accessed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class PortalInvitation(Base):
+    __tablename__ = "portal_invitations"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    access_grant_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("client_portal_access.id"), nullable=False
+    )
+    invitation_token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    channel: Mapped[str] = mapped_column(String, nullable=False, default="email")
+    recipient: Mapped[str] = mapped_column(Text, nullable=False)
+    state: Mapped[str] = mapped_column(String, nullable=False, default="ISSUED")
+    issued_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ESignConsent(Base):
+    __tablename__ = "esign_consent_records"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    workflow_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("retainer_workflows.id"), nullable=False
+    )
+    portal_access_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("client_portal_access.id"), nullable=False
+    )
+    prospect_party_role_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False)
+    state: Mapped[str] = mapped_column(String, nullable=False, default="GRANTED")
+    ip_address: Mapped[str | None] = mapped_column(Text, nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(Text, nullable=True)
+    granted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class EngagementQuestion(Base):
@@ -481,5 +674,77 @@ class AuditEvent(Base):
     result: Mapped[str] = mapped_column(String, nullable=False)
     details: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class InformationRequestItem(Base):
+    __tablename__ = "information_request_items"
+    __table_args__ = (
+        UniqueConstraint("request_id", "item_key"),
+    )
+
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    request_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("missing_information_requests.id"), nullable=False
+    )
+    item_key: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    category: Mapped[str] = mapped_column(String, nullable=False)
+    required: Mapped[bool] = mapped_column(default=True)
+    status: Mapped[str] = mapped_column(String, nullable=False, default="REQUESTED")
+    fulfilled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class InformationSubmission(Base):
+    __tablename__ = "information_submissions"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    request_item_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("information_request_items.id"), nullable=False
+    )
+    submitted_by_actor_id: Mapped[str] = mapped_column(Text, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    content_type: Mapped[str] = mapped_column(String, nullable=False, default="TEXT")
+    submitted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    verification_status: Mapped[str] = mapped_column(String, nullable=False, default="PENDING")
+    verified_by_actor_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class EngagementOutcome(Base):
+    __tablename__ = "engagement_outcomes"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    workflow_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("retainer_workflows.id"), nullable=False
+    )
+    outcome_class: Mapped[str] = mapped_column(String, nullable=False)
+    friction_reason: Mapped[str | None] = mapped_column(String, nullable=True)
+    evidence_classification: Mapped[str] = mapped_column(String, nullable=False, default="SYSTEM_OBSERVED")
+    stated_by_actor_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    recorded_by_actor_id: Mapped[str] = mapped_column(Text, nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    recorded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class ClientExperienceProjection(Base):
+    __tablename__ = "client_experience_projections"
+    id: Mapped[_uuid.UUID] = mapped_column(Uuid, primary_key=True, default=_uuid.uuid4)
+    tenant_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
+    workflow_id: Mapped[_uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("retainer_workflows.id"), nullable=False
+    )
+    recipient_party_role_id: Mapped[_uuid.UUID] = mapped_column(Uuid, nullable=False)
+    display_state: Mapped[str] = mapped_column(String, nullable=False)
+    primary_action: Mapped[str | None] = mapped_column(String, nullable=True)
+    allowed_actions: Mapped[dict] = mapped_column(JSON, nullable=False, default=list)
+    last_updated_event_id: Mapped[_uuid.UUID | None] = mapped_column(Uuid, nullable=True)
+    rebuilt_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

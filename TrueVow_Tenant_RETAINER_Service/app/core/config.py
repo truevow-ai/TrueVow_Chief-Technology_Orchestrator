@@ -36,6 +36,16 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 3038
 
+    service_api_key: str = Field(
+        default="retainer-dev-key-change-in-production",
+        validation_alias=AliasChoices("RETAINER_SERVICE_API_KEY", "SERVICE_API_KEY"),
+    )
+
+    intake_webhook_secret: str = Field(
+        default="retainer-dev-key-change-in-production",
+        validation_alias=AliasChoices("INTAKE_WEBHOOK_SECRET", "REPRESENTATION_REVIEW_WEBHOOK_SECRET"),
+    )
+
     model_config = SettingsConfigDict(
         env_file=(".env", ".env.local"),
         case_sensitive=False,
