@@ -52,3 +52,35 @@ python ../TrueVow_Shared_Orchestration/orchestrator.py dispatch "<user's request
 
 > Add service-specific rules below. The ecosystem preamble above is auto-generated
 > and wires this agent into the TrueVow Agent Ecosystem.
+
+## Cross-Service Webhook Contracts
+
+### WebhookSignature v1.0 (Frozen)
+
+Implementation: `app/security/webhook_signature.py`
+Golden fixtures: `tests/test_webhook_signature.py`
+
+**RETAINER verifies** (receives from INTAKE):
+- `POST /api/v1/retainer/webhooks/candidate-submitted`
+
+**RETAINER signs** (sends to SaaS Admin):
+- `POST /api/v1/matters/activate`
+
+**Canonical signing string:** `{timestamp_ms}:{UPPERCASE_METHOD}:{path}:{body_sha256}`
+
+**Key IDs:** `tv-primary` (default), `tv-secondary` (rotation)
+
+**Env vars:** `TRUEVOW_WEBHOOK_KEY_ID`, `TRUEVOW_WEBHOOK_SECRET`
+
+**Legacy migration:** Bearer/API-Key auth still accepted with deprecation warning (logged as `LEGACY_AUTH`). Remove after all services migrate.
+
+### EventEnvelope v1.0.1
+
+All outbox events use schema_version `1.0.1`.
+Implementation: `packages/retainer-contracts/retainer_contracts/envelope.py`
+
+### Idempotency
+
+Webhook receiver enforces event idempotency via `event_id` in inbound payloads.
+Duplicate events return previous result; conflicting events are rejected.
+Implementation: `app/models/retainer.py` → `RetainerIdempotencyKey`
