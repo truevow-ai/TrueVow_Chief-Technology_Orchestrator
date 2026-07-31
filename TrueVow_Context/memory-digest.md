@@ -3,10 +3,10 @@
 > AUTO-GENERATED from memory.db by `python TrueVow_Shared_Orchestration/memory.py export`.
 > Do NOT edit by hand - changes are overwritten. Source of truth: `TrueVow_Shared_Codebase_Memory/memory.db`.
 
-- Generated: 2026-07-31T02:57:57.676467+00:00
-- Total memories: 245
+- Generated: 2026-07-31T02:59:06.450600+00:00
+- Total memories: 249
 
-## High-importance decisions (8+, routine noise excluded) - 116
+## High-importance decisions (8+, routine noise excluded) - 119
 
 - **[10][architecture] RETAINER v1.0 Complete — Release Candidate** - RETAINER service is feature-complete through BP-09. 133 tests pass. 68 endpoints (59 firm + 9 client). 40 tables in Supabase retainer schema at migration 0008. INTAKE→RETAINER webhook impl (HMAC v1.0). Client API v1 frozen at 9 endpoints. Scope transition: ENGAGEMENT_ONLY → ENGAGEMENT_HISTORY (no MATTER_*). Cross-product spine: INTAKE→RETAINER→SaaS Admin verified. Portal architecture: Customer Portal (firm) + Client Portal (prospect) separated. Controlled pilot ready.
   _by Admin - 2026-07-31 - tags: -_
@@ -138,6 +138,10 @@
   _by user - 2026-06-25 - tags: ecosystem, fm, financial-management, dispatch, integration, architecture_
 - **[9][bug] contact_info_sequence dropped phone+email** - Root cause: routing INTO a sequence node used _execute_node, which returned the sequence's own intro prompt and left current_node=contact_info_sequence WITHOUT priming the first sub-node. Next turn the C10 terminal guard (workflow_engine.py:518) saw no next/branches/options and returned _build_complete_response — so name-only leads jumped to 'complete', losing phone+email. FIX: _execute_node now delegates type==sequence to _execute_sequence (primes contact_name, prepends intro to first question); terminal guards treat nodes/type==sequence as a valid exit. Verified: name->phone->email chain now runs.
   _by Admin - 2026-07-14 - tags: -_
+- **[9][decision] Client API v1 — 9 Endpoints Frozen** - RETAINER Client API: 6 GET + 3 POST under /api/v1/retainer/client/v1/. Post-activation: _has_scope maps ENGAGEMENT_HISTORY → ENGAGEMENT_VIEW + COMPLETED_COPY_DOWNLOAD for reads. State-changing endpoints (questions, decline) blocked after activation. DTO allowlists tested via exact-key assertions. Token=v2 (portal access via query param), not lifetime-long bearer.
+  _by Admin - 2026-07-31 - tags: -_
+- **[9][decision] Portal Scope Ownership — Shared Platform vs RETAINER** - RETAINER stores local projection (ClientPortalAccess) with canonical_access_grant_id for reconciliation. RETAINER grants ENGAGEMENT_HISTORY on activation, never MATTER_*. Shared Platform owns canonical grants, identities, invitations, and adds ACTIVE_MATTER after matter.activated. ClientPortalAccess.state separated from .scopes (PENDING_INVITATION/ACTIVE/REVOKED vs ENGAGEMENT_VIEW/ENGAGEMENT_HISTORY).
+  _by Admin - 2026-07-31 - tags: -_
 - **[9][decision] xai voice bridge SOLID (aa1a462) — remaining work is engine content** - Voice bridge now production-grade (test-1784022941612, 15 turns, committed aa1a462): greeting-prime fix (set context.current_node=greeting directly, fixes stuck-on-greeting), compliant greeting in workflow config (AI disclosure+recording+no-advice+no-A/C+human-path, spoken via force_message), monologue VAD (server_vad silence_duration_ms=2000 idle_timeout_ms=null) CONFIRMED applied via session.updated echo, ASR keyterms honoring xAI HARD LIMIT (20 terms x 20 chars, from keyword_loader.build_asr_keyterms). session.updated echo logging added. All voice-plumbing issues SOLVED: verbatim, advancing, compliant, monologue-survival, keyterms, no misroutes. REMAINING = separate WorkflowEngine CONTENT workstream (NOT bridge): frustrated-caller handling, transfer/speak-to-attorney requests, narrative acknowledgment vs rigid question ladder, interruption repair, terminal-node objection handling (cost/appointment/legal-advice). CONSOLE action still needed: disable 'Follow-up after silence' (idle_timeout 5000 injects empty turns). Test rig: :3023/demo/xai_cloud_test.html; reports in transcripts/{sid}-report.json.
   _by Admin - 2026-07-14 - tags: -_
 - **[9][decision] xai_cloud bridge converted C->B (force_message, single-brain)** - ROOT CAUSE of xai_cloud conversation-quality failures (repetition loop, 'third time you said that'): Option C two-brain architecture. xAI ?model= + process_intake function tool let xAI's LLM compose its OWN reply AND our WorkflowEngine also drove -> they collided. FIX: converted to Option B. xAI = mouth+ears only (STT/VAD/TTS). WorkflowEngine = sole brain. Per turn: xAI input_audio_transcription -> _handle_user_turn -> engine.process_input(text) -> _force_message(prompt) delivered VERBATIM (item.type=force_message, NO response.create per xAI docs). Removed process_intake tool; instructions now minimal identity only + reasoning.effort=none. File: app/services/voice/bridges/xai_cloud_voice_agent/xai_cloud_voice_bridge.py. 40/40 tests pass.
@@ -204,6 +208,8 @@
   _by Admin - 2026-07-08 - tags: -_
 - **[8][bug] gitignore source-leak ECOSYSTEM AUDIT results (June 25) — which repos still affected** - Audited all sibling git repos for the gitignore source-leak (advisory 64bc43bf). NONE have run the fix yet (advisory just issued). CONFIRMED UNFIXED SOURCE LEAKS (real lib/ source hidden from git): TrueVow_Financial_Management_Service (frontend/lib + frontend/__tests__/lib), TrueVow_Tenant_Application_Service (app/portal/lib, dograh server ui/src/lib, scripts/lib), TrueVow-Tenant_Billing-Service (ui/lib; ALSO its .gitignore has an embedded NULL/control byte — corrupted). LATENT (dangerous unanchored lib/ rule present but no active source leak yet): TrueVow_Internal_Ops_Service, TrueVow_Tenant_SETTLE-Service, TrueVow_Tenant_LEVERAGE_Service. NOT GIT REPOS AT ALL (no version control — separate severe issue): TrueVow_Dialogflow_Intake_Service, TrueVow_Platform_Analytics_Service, TrueVow_Tenant_VERIFY_Service, TrueVow_TWIML_SoftPhone_App. CLEAN: Website, Customer_Success_CORE, First_Line_Support, Sales_Ops, Tenant_CONNECT, Customer_Portal, cartesia_test. SaaS_Admin already fixed. Each affected repo agent: run docs/01-main/ECOSYSTEM_ADVISORY_GITIGNORE_SOURCE_LEAK.md (in SaaS Admin).
   _by user - 2026-06-25 - tags: gitignore, audit, ecosystem, cross-service_
+- **[8][convention] Webhook Auth Migration — HMAC v1.0 + Legacy Bearer** - Webhook endpoint accepts both HMAC (X-TrueVow-Key-Id + X-TrueVow-Timestamp + X-TrueVow-Signature) and legacy Bearer. HMAC uses SHA-256 body hash + HMAC-SHA256 signing string (timestamp:method:path:bodyHash), 5-min replay window, constant-time compare. Legacy logs deprecation warning. Key resolution: tv-primary → INTAKE_WEBHOOK_SECRET.
+  _by Admin - 2026-07-31 - tags: -_
 - **[8][convention] Golden Fixture Cross-Repository Testing** - Created app/shared/contracts.py with frozen contract versions and deterministic golden fixture (make_golden_envelope, make_golden_fixture_json, compute_golden_hmac). Every TrueVow product must deserialize the same 18-field EventEnvelope and compute the same HMAC over the exact raw fixture. Tests at tests/test_golden_fixtures.py validate envelope serialization, roundtrip deserialization, HMAC determinism, evidence manifest completeness (9 refs), and jurisdiction separation (global vs tenant).
   _by Admin - 2026-07-31 - tags: -_
 - **[8][decision] TRACE portal module architecture decisions** - TRACE frontend integrated into Customer Portal (Next.js 14, port 3031, Clerk App3). LEVERAGE hidden from sidebar, replaced by TRACE. Features: 6 pages (landing, cases list, new case wizard, case detail, providers, chronology). Portal-to-backend communication via universal proxy route app/api/trace/[...path]/route.ts that generates HS256 JWT using Node crypto (zero dependencies). Feature gating via billing service with dev fallback. Tenant resolution via useTenantDev() with NEXT_PUBLIC_DEV_TENANT_ID fallback for users without Clerk tenant assignment. DocuSeal and Documo both offline in dev -- case stage advancement forced via DB update for testing.
@@ -383,7 +389,7 @@
 - **[6] xai_cloud bridge test suite** - Created tests/test_xai_cloud_bridge.py (34 tests) for XaiCloudBridge. Mirrors test_xai_bridge.py but adapts for cloud bridge: dual registration (xai_cloud + xai_cloud_voice_agent), default voice rex (male-only), end_session returns {bridge,session_id,status} without had_audio, double-start early-ret...
   _by Admin - 2026-07-08_
 
-## decision (25)
+## decision (27)
 
 - **[10] SaaS Admin: 9 Contracts Frozen at v1.0.1** - EventEnvelope (18 fields, extensions prohibited at root), MatterActivatedPayload, ActivationEvidenceManifest (9 refs, SHA-256), WebhookSignature (HMAC-SHA256, constant-time, replay rejection), AuthorityClass (6 classes: SYS_ADMIN,FIRM_POLICY,STAFF_AUTH,ATTY_AUTH,CLIENT_AUTH,PROHIBITED), Ontology Reg...
   _by Admin - 2026-07-31_
@@ -409,6 +415,10 @@
   _by user - 2026-06-25_
 - **[10] CONNECT Archived - DRAFT Renamed to LEVERAGE - INTAKE Updated** - CONNECT (attorney referral network) is decommissioned and archived from the ecosystem permanently - no longer on TrueVow agenda. DRAFT has been completely replaced by LEVERAGE everywhere (same service, renamed). INTAKE (Tenant Application Service) is no longer just FSM NLP - it is now FSM applied to...
   _by user - 2026-06-25_
+- **[9] Client API v1 — 9 Endpoints Frozen** - RETAINER Client API: 6 GET + 3 POST under /api/v1/retainer/client/v1/. Post-activation: _has_scope maps ENGAGEMENT_HISTORY → ENGAGEMENT_VIEW + COMPLETED_COPY_DOWNLOAD for reads. State-changing endpoints (questions, decline) blocked after activation. DTO allowlists tested via exact-key assertions. To...
+  _by Admin - 2026-07-31_
+- **[9] Portal Scope Ownership — Shared Platform vs RETAINER** - RETAINER stores local projection (ClientPortalAccess) with canonical_access_grant_id for reconciliation. RETAINER grants ENGAGEMENT_HISTORY on activation, never MATTER_*. Shared Platform owns canonical grants, identities, invitations, and adds ACTIVE_MATTER after matter.activated. ClientPortalAccess...
+  _by Admin - 2026-07-31_
 - **[9] xai voice bridge SOLID (aa1a462) — remaining work is engine content** - Voice bridge now production-grade (test-1784022941612, 15 turns, committed aa1a462): greeting-prime fix (set context.current_node=greeting directly, fixes stuck-on-greeting), compliant greeting in workflow config (AI disclosure+recording+no-advice+no-A/C+human-path, spoken via force_message), monolo...
   _by Admin - 2026-07-14_
 - **[9] xai_cloud bridge converted C->B (force_message, single-brain)** - ROOT CAUSE of xai_cloud conversation-quality failures (repetition loop, 'third time you said that'): Option C two-brain architecture. xAI ?model= + process_intake function tool let xAI's LLM compose its OWN reply AND our WorkflowEngine also drove -> they collided. FIX: converted to Option B. xAI = m...
@@ -436,10 +446,12 @@
 - **[4] All 18 Active Services Wired to Ecosystem + 1 Archived** - 18 of 18 active TrueVow services wired with AGENTS.md + ecosystem integration. 1 archived: CONNECT (decommissioned June 2026, no longer on TrueVow agenda). Every agent opening any active service reads ecosystem preamble: check in with CTO orchestrator, dispatch tasks, remember decisions, report stat...
   _by user - 2026-06-25_
 
-## convention (2)
+## convention (3)
 
 - **[10] zero hardcoded tunable values** - RULE: This is a multi-tenant platform. Never hardcode ANY value that may need adjustment per-tenant, per-firm, or per-environment. All tunables must live in one of: (1) tenant_config, (2) workflow JSON config, or (3) named module-level constants with clear documentation. Bare numbers, strings, or ID...
   _by Admin - 2026-07-15_
+- **[8] Webhook Auth Migration — HMAC v1.0 + Legacy Bearer** - Webhook endpoint accepts both HMAC (X-TrueVow-Key-Id + X-TrueVow-Timestamp + X-TrueVow-Signature) and legacy Bearer. HMAC uses SHA-256 body hash + HMAC-SHA256 signing string (timestamp:method:path:bodyHash), 5-min replay window, constant-time compare. Legacy logs deprecation warning. Key resolution:...
+  _by Admin - 2026-07-31_
 - **[8] Golden Fixture Cross-Repository Testing** - Created app/shared/contracts.py with frozen contract versions and deterministic golden fixture (make_golden_envelope, make_golden_fixture_json, compute_golden_hmac). Every TrueVow product must deserialize the same 18-field EventEnvelope and compute the same HMAC over the exact raw fixture. Tests at ...
   _by Admin - 2026-07-31_
 
@@ -482,7 +494,7 @@
 - **[1] FIXED: gitignore source-leak advisory** - RESOLVED July 1. All 6 affected services fixed.
   _by user - 2026-07-01_
 
-## context (120)
+## context (121)
 
 - **[10] TRACE Contract Normalization Complete** - Four contract corrections applied: (1) EventEnvelope frozen at v1.0.1 with 18 required fields, (2) matter.activated payload normalized to 9 canonical evidence references, (3) webhook auth upgraded from shared-secret header to HMAC-SHA256 signature, (4) global vs tenant data separation documented. Go...
   _by Admin - 2026-07-31_
@@ -494,6 +506,8 @@
   _by Admin - 2026-07-27_
 - **[8] Git Scan: 2026-07-21T17:26:34** - { "summary": { "timestamp": "2026-07-21T17:26:34.837888+00:00", "total": 14, "clean": 0, "dirty": 13, "missing": 1, "errors": 0, "stale_services": 14, "active_services": 0, "status_breakdown": { "HEALTHY": 0, "ACTIVE": 0, "STALE": 1, "NEGLECTED": 13, "BLOCKED": 0, "FAILING": 0, "INCIDENT": 0, "DIRTY...
   _by Admin - 2026-07-21_
+- **[7] [DONE] DONE: RETAINER: v1.0 release candidate complete | BP-01 through BP-09 built and tested | 133 tests passing** - {"agent_id": "TrueVow_Tenant_RETAINER_Service", "action": "done", "status": "DONE", "message": "RETAINER: v1.0 release candidate complete | BP-01 through BP-09 built and tested | 133 tests passing | 68 endpoints (59 firm + 9 client API v1) | 40 tables in Supabase | INTAKE\u2192RETAINER HMAC webhook ...
+  _by user - 2026-07-31_
 - **[7] [DONE] DONE: SETTLE: Settlement domain models (ENT-081 through ENT-106), service layer (8 modules), 30 REST endpo** - {"agent_id": "TrueVow_Tenant_SETTLE-Service", "action": "done", "status": "DONE", "message": "SETTLE: Settlement domain models (ENT-081 through ENT-106), service layer (8 modules), 30 REST endpoints, shared foundation (9 cross-product services), 4 contract corrections (EventEnvelope v1.0.1, 9 eviden...
   _by user - 2026-07-31_
 - **[7] [DONE] DONE: SaaS Admin: Ontology compliance, contract freeze, portal architecture, service rename, skills refact** - {"agent_id": "TrueVow_SaaS_Administration_Service", "action": "done", "status": "DONE", "message": "SaaS Admin: Ontology compliance, contract freeze, portal architecture, service rename, skills refactor, sales dashboard, RETAINER activation contract | outcome: 326 tables, 269 functions, 174 migratio...
