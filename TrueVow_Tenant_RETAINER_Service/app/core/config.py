@@ -42,8 +42,13 @@ class Settings(BaseSettings):
     )
 
     intake_webhook_secret: str = Field(
-        default="retainer-dev-key-change-in-production",
+        default="",
         validation_alias=AliasChoices("INTAKE_WEBHOOK_SECRET", "REPRESENTATION_REVIEW_WEBHOOK_SECRET"),
+    )
+
+    legacy_auth_cutoff: str = Field(
+        default="2026-09-01",
+        validation_alias=AliasChoices("LEGACY_WEBHOOK_AUTH_CUTOFF"),
     )
 
     model_config = SettingsConfigDict(

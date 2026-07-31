@@ -107,6 +107,17 @@ async def get_webhook_context(request: Request) -> AuthContext:
 
     api_key = _extract_bearer(request) or request.headers.get("X-API-Key")
     if api_key:
+        from datetime import date
+
+        from app.core.config import settings
+
+        cutoff = date.fromisoformat(settings.legacy_auth_cutoff) if settings.legacy_auth_cutoff else date.today()
+        if date.today() > cutoff:
+            raise HTTPException(
+                status.HTTP_410_GONE,
+                detail="Legacy webhook auth is no longer accepted. Use HMAC WebhookSignature v1.0.",
+            )
+
         allowed = {settings.service_api_key}
         if settings.intake_webhook_secret:
             allowed.add(settings.intake_webhook_secret)

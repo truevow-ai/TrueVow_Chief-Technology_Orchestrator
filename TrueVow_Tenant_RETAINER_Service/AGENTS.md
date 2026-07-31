@@ -72,7 +72,16 @@ Golden fixtures: `tests/test_webhook_signature.py`
 
 **Env vars:** `TRUEVOW_WEBHOOK_KEY_ID`, `TRUEVOW_WEBHOOK_SECRET`
 
-**Legacy migration:** Bearer/API-Key auth still accepted with deprecation warning (logged as `LEGACY_AUTH`). Remove after all services migrate.
+**Legacy migration:** Bearer/API-Key auth still accepted with deprecation warning
+(logged as `LEGACY_AUTH`). **Cutoff: 2026-09-01.** After this date, all legacy tokens
+are rejected (410 Gone). Configure via `LEGACY_WEBHOOK_AUTH_CUTOFF` env var.
+
+**Canonical paths (exact, no trailing slash, no query string):**
+- INTAKE → RETAINER: `/api/v1/retainer/webhooks/candidate-submitted`
+- RETAINER → SaaS Admin: `/api/v1/matters/activate`
+
+**Contract source of truth:** `shared-libraries/lib/contracts/index.ts`
+**Golden fixtures:** `shared-libraries/tests/security/webhook-signature.test.ts`
 
 ### EventEnvelope v1.0.1
 
