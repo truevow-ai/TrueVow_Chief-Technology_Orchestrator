@@ -3,11 +3,13 @@
 > AUTO-GENERATED from memory.db by `python TrueVow_Shared_Orchestration/memory.py export`.
 > Do NOT edit by hand - changes are overwritten. Source of truth: `TrueVow_Shared_Codebase_Memory/memory.db`.
 
-- Generated: 2026-07-31T02:57:25.982871+00:00
-- Total memories: 243
+- Generated: 2026-07-31T02:57:57.676467+00:00
+- Total memories: 245
 
-## High-importance decisions (8+, routine noise excluded) - 115
+## High-importance decisions (8+, routine noise excluded) - 116
 
+- **[10][architecture] RETAINER v1.0 Complete — Release Candidate** - RETAINER service is feature-complete through BP-09. 133 tests pass. 68 endpoints (59 firm + 9 client). 40 tables in Supabase retainer schema at migration 0008. INTAKE→RETAINER webhook impl (HMAC v1.0). Client API v1 frozen at 9 endpoints. Scope transition: ENGAGEMENT_ONLY → ENGAGEMENT_HISTORY (no MATTER_*). Cross-product spine: INTAKE→RETAINER→SaaS Admin verified. Portal architecture: Customer Portal (firm) + Client Portal (prospect) separated. Controlled pilot ready.
+  _by Admin - 2026-07-31 - tags: -_
 - **[10][architecture] Shared Foundation Services v1.0.1** - Created app/shared/ with 9 cross-product services: TenantCore (identity/roles/isolation), AuthorityGate (AUTH-001 through AUTH-020, 27 registered actions), PolicyRegistry (jurisdiction profiles, firm policies, immutable config snapshots), ConsentLedger (append-only, 7-state lifecycle), DocumentService (versioned with SHA-256 hashes, signature evidence packages), CommunicationService (multi-channel, delivery evidence), WorkflowRuntime (deterministic state transitions, overdue escalation), AuditEventStore (ontology-compliant 18-field EventEnvelope v1.0.1), IntegrationHub (12 integration types). 25 shared DB tables in migration b2c3d4e5f6a7.
   _by Admin - 2026-07-31 - tags: -_
 - **[10][architecture] 5-Layer Platform Architecture Frozen** - Layer 1: Benjamin Constitution (behavior — never changes). Layer 2: Conversation Orchestrator (FSM — 11 states, confidence gates, authority gates, auto-chain throttled). Layer 3: Intake Ontology (17 universal concepts — shared language). Layer 4: Practice Knowledge Module (PI/Employment/Family — replaceable checklists). Layer 5: Qualification & Scoring (A+→D grading, confidence-weighted). Below: Attorney Brief & Portal. Architecture validated: duplicate rate 44%→0%, information efficiency 0.11→0.46, story violations 0. All 14 engine tests + 18 envelope contract tests pass.
@@ -239,8 +241,10 @@
 - **[8][todo] FIX gitignore source-leak: TrueVow-Tenant_Billing-Service** - ASSIGNED to the TrueVow-Tenant_Billing-Service agent. Real lib/ source is currently hidden from git (confirmed). Run the playbook: TrueVow_SaaS_Administration_Service/docs/01-main/ECOSYSTEM_ADVISORY_GITIGNORE_SOURCE_LEAK.md (fix .gitignore: anchor/remove stray lib/ + logs/; secrets-scan; commit recovered source in reviewed batches by explicit path; verify clean-clone build). REPORT RESULT via memory.py remember category=bug title='TrueVow-Tenant_Billing-Service gitignore RESULT' content='FIXED n files | CLEAN | BLOCKED + reason; secrets found?'. NOTE: reporting.py agent-checkin is broken — report via memory.
   _by user - 2026-06-25 - tags: gitignore, todo, assigned_
 
-## architecture (59)
+## architecture (60)
 
+- **[10] RETAINER v1.0 Complete — Release Candidate** - RETAINER service is feature-complete through BP-09. 133 tests pass. 68 endpoints (59 firm + 9 client). 40 tables in Supabase retainer schema at migration 0008. INTAKE→RETAINER webhook impl (HMAC v1.0). Client API v1 frozen at 9 endpoints. Scope transition: ENGAGEMENT_ONLY → ENGAGEMENT_HISTORY (no MA...
+  _by Admin - 2026-07-31_
 - **[10] Shared Foundation Services v1.0.1** - Created app/shared/ with 9 cross-product services: TenantCore (identity/roles/isolation), AuthorityGate (AUTH-001 through AUTH-020, 27 registered actions), PolicyRegistry (jurisdiction profiles, firm policies, immutable config snapshots), ConsentLedger (append-only, 7-state lifecycle), DocumentServi...
   _by Admin - 2026-07-31_
 - **[10] 5-Layer Platform Architecture Frozen** - Layer 1: Benjamin Constitution (behavior — never changes). Layer 2: Conversation Orchestrator (FSM — 11 states, confidence gates, authority gates, auto-chain throttled). Layer 3: Intake Ontology (17 universal concepts — shared language). Layer 4: Practice Knowledge Module (PI/Employment/Family — rep...
@@ -478,7 +482,7 @@
 - **[1] FIXED: gitignore source-leak advisory** - RESOLVED July 1. All 6 affected services fixed.
   _by user - 2026-07-01_
 
-## context (119)
+## context (120)
 
 - **[10] TRACE Contract Normalization Complete** - Four contract corrections applied: (1) EventEnvelope frozen at v1.0.1 with 18 required fields, (2) matter.activated payload normalized to 9 canonical evidence references, (3) webhook auth upgraded from shared-secret header to HMAC-SHA256 signature, (4) global vs tenant data separation documented. Go...
   _by Admin - 2026-07-31_
@@ -490,6 +494,8 @@
   _by Admin - 2026-07-27_
 - **[8] Git Scan: 2026-07-21T17:26:34** - { "summary": { "timestamp": "2026-07-21T17:26:34.837888+00:00", "total": 14, "clean": 0, "dirty": 13, "missing": 1, "errors": 0, "stale_services": 14, "active_services": 0, "status_breakdown": { "HEALTHY": 0, "ACTIVE": 0, "STALE": 1, "NEGLECTED": 13, "BLOCKED": 0, "FAILING": 0, "INCIDENT": 0, "DIRTY...
   _by Admin - 2026-07-21_
+- **[7] [DONE] DONE: SETTLE: Settlement domain models (ENT-081 through ENT-106), service layer (8 modules), 30 REST endpo** - {"agent_id": "TrueVow_Tenant_SETTLE-Service", "action": "done", "status": "DONE", "message": "SETTLE: Settlement domain models (ENT-081 through ENT-106), service layer (8 modules), 30 REST endpoints, shared foundation (9 cross-product services), 4 contract corrections (EventEnvelope v1.0.1, 9 eviden...
+  _by user - 2026-07-31_
 - **[7] [DONE] DONE: SaaS Admin: Ontology compliance, contract freeze, portal architecture, service rename, skills refact** - {"agent_id": "TrueVow_SaaS_Administration_Service", "action": "done", "status": "DONE", "message": "SaaS Admin: Ontology compliance, contract freeze, portal architecture, service rename, skills refactor, sales dashboard, RETAINER activation contract | outcome: 326 tables, 269 functions, 174 migratio...
   _by user - 2026-07-31_
 - **[7] [DONE] DONE: TRACE: Phase 2A schema migration, contract normalization, portal access model, and webhook auth comp** - {"agent_id": "TrueVow_Tenant_TRACE_Service", "action": "done", "status": "DONE", "message": "TRACE: Phase 2A schema migration, contract normalization, portal access model, and webhook auth complete | outcome: 60/60 tests pass, 12/12 smoke tests pass, 31 tables migrated to Supabase, 4 contract correc...
